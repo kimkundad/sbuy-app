@@ -1,70 +1,635 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import { Image, View, Text, StyleSheet, Dimensions, Platform, TextInput, Alert, ActivityIndicator, TouchableOpacity, FlatList, ScrollView } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Link, useNavigation, router, Stack, useRouter } from 'expo-router';
+import React, { useEffect, useContext, useState } from 'react';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { StatusBar } from 'expo-status-bar';
+import AntDesign from '@expo/vector-icons/AntDesign';
+import Carousel from 'react-native-reanimated-carousel';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { UserContext } from '../../hooks/UserContext';
+import axios from 'axios';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const { width: screenWidth } = Dimensions.get('window');
 
-export default function HomeScreen() {
+const categories = [
+  {
+    id: 1,
+    name: "ภาษาญี่ปุ่น",
+  },
+  {
+    id: 2,
+    name: "ภาษาเกาหลี",
+  },
+  {
+    id: 3,
+    name: "ภาษาจีน",
+  },
+  {
+      id: 4,
+      name: "ภาษาเยอรมัน",
+  },
+  {
+      id: 5,
+      name: "ภาษาอื่นๆ",
+  },
+];
+
+export default function HomeScreen({ navigation }) {
+
+  const [activeIndex, setActiveIndex] = useState(0);
+  const { userProfile, logout } = useContext(UserContext);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [getSlide, setGetSlide] = useState(false);
+  const [getPacKage, setPacKage] = useState(false);
+  const [getCourse, setCourse] = useState(false);
+  const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
+  const [sortData, setSortData] = useState(0)
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = await AsyncStorage.getItem('jwt_token');
+      if (token) {
+        setIsAuthenticated(true);
+      } else {
+        navigation.navigate('Login');
+      }
+    };
+
+    const fetchSlide = async () => {
+      try {
+        const response = await axios.get('https://www.learnsbuy.com/api/slide_show_app');
+    
+        // Set the data to state or handle the response
+        setGetSlide(response.data.data);
+      } catch (error) {
+        console.error('Error fetching slides:', error);
+      }
+    };
+
+    const fetchPacKage = async () => {
+      try {
+        const response = await axios.get('https://www.learnsbuy.com/api/get_package_all_app');
+    
+        // Set the data to state or handle the response
+        setPacKage(response.data.data.get_package);
+      } catch (error) {
+        console.error('Error fetching slides:', error);
+      }
+    };
+
+    fetchPacKage();
+    checkAuth();
+    fetchSlide();
+  }, []);
+
+  useEffect(() => {
+    const fetchCourse = async () => {
+      try {
+        const response = await axios.get(`https://www.learnsbuy.com/api/all_cource_app/${sortData}`);
+        setCourse(response.data.data.get_course);  // Update the course data based on the sort
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+      }
+    };
+
+    fetchCourse();  // Fetch courses whenever sortData changes
+  }, [sortData]);  // Re-run effect when sortData changes
+
+  useEffect(() => {
+    console.log('userProfile', userProfile)
+  }, [userProfile]);
+  
+  const padding = 20;
+  const carouselWidth = screenWidth - padding * 2;
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
+    <SafeAreaProvider style={{ flex: 1, backgroundColor: '#fff' }} >
+      <ScrollView>
+
+      <View >
+
+<View style={styles.containerBlue} />
+<View style={styles.container1}>
+  {/* profileMain  */}
+  <View style={styles.profileMain}>
+    <View style={styles.profile}>
+
+      <View style={styles.borderAvatar}>
         <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        style={styles.userImage}
+        source={{ uri: 'https://wpnrayong.com/admin/assets/media/avatars/300-12.jpg' }} />
+      </View>
+      
+{userProfile ? (
+      <View>
+        <View style={styles.showflex}>
+          <Text style={{
+            color: Colors.white, fontSize: 14, fontFamily: 'Prompt_500Medium', fontWeight: 700, marginRight: 5
+          }}>POINT</Text>
+          <Text style={{
+            color: Colors.white, fontSize: 14, fontFamily: 'Prompt_400Regular', 
+          }}>{userProfile.user_coin}</Text>
+        </View>
+          <Text style={{ color: Colors.white, fontSize: 18, fontFamily: 'Prompt_400Regular', marginTop: -5 }}>{userProfile.name},</Text>
+      </View>
+      ) : (
+        <Text style={{ color: Colors.white, fontSize: 20 }}>Loading...</Text>
+      )}
+    </View>
+
+    <TouchableOpacity
+      onPress={() => {
+        // handle onPress
+      }}>
+      <View>
+        <Ionicons name="notifications-outline" size={27} color="white" />
+      </View>
+      </TouchableOpacity>
+
+  </View>
+  {/* profileMain  */}
+  
+  <View style={styles.slideImg}>
+  <View style={styles.boxGiffSlide}>
+
+    <View>
+    {Array.isArray(getSlide) && getSlide.length > 0 ? (
+        <>
+      <Carousel
+        loop
+        width={carouselWidth}
+        height={150}
+        autoPlay={true}
+        autoPlayInterval={4000}
+        data={getSlide}
+        scrollAnimationDuration={1000}
+        onSnapToItem={(index) => setActiveIndex(index)}  // Track the active slide
+        renderItem={({ index }) => (
+
+          <View>
+            <Image
+              source={{ uri: getSlide[index] }}  // นำ URL มาแสดงเป็นภาพ
+              style={{
+                width: '100%',
+                height: '100%',
+                resizeMode: 'cover',
+                borderRadius: 5,
+              }}
+            />
+          </View>
+
+        )}
+      />
+      {/* Custom Pagination Dots */}
+      <View style={styles.pagination}>
+            {getSlide.map((_, index) => (
+              <View
+                key={index}
+                style={[
+                  styles.dot,
+                  index === activeIndex ? styles.activeDot : styles.inactiveDot, // Different styles for active and inactive dots
+                ]}
+              />
+            ))}
+          </View>
+          </>
+        ) : (
+        <View>
+          <Text style={{ color: Colors.white, fontSize: 20 }}>Loading...</Text>
+        </View>
+      )}
+    </View>
+
+  </View>
+  </View>
+
+
+  <View style={styles.menuHeader}>
+    <Text style={styles.menuHeader1}>แพ็กเกจสุดคุ้ม</Text>
+    <Text style={styles.menuHeader2}>ทั้งหมด</Text>
+  </View>
+
+
+    <View>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.scrollContainer}
+    >
+      {getPacKage && (
+        <>
+      {getPacKage.map((pack, index) => (
+        <View key={index} style={styles.card}>
+          <Image source={{ uri: 'https://learnsbuy.com/assets/uploads/' + pack.c_pack_image }} style={styles.image} />
+          <Text style={styles.price} >{pack.c_pack_price}</Text>
+          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">{pack.c_pack_name}</Text>
+          <View style={{ paddingHorizontal: 5 }}>
+          <View style={styles.courseInfo}>
+
+
+          
+            <View style={styles.showflex}>
+            <Ionicons name="play-circle" size={20} color="#000" />
+            <Text style={styles.lessonText} >
+              {pack.pack_count ? pack.pack_count : 0} Lessons
+            </Text>
+            </View>
+
+            <View style={styles.showflex}>
+            <Ionicons name="time-outline" size={20} color="#000" />
+            <Text style={styles.durationText}>
+               {pack.pack_hr ? pack.pack_hr : '0h'}
+            </Text>
+            </View>
+          
+
+          </View>
+          </View>
+        </View>
+      ))}
+      </>
+    )}
+    </ScrollView>
+    </View>
+
+
+    <View style={styles.menuHeader}>
+      <Text style={styles.menuHeader1}>คอร์สเรียนทั้งหมด</Text>
+    </View>
+
+    <View>
+  <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.scrollContainer}
+    >
+      {categories && (
+        <>
+      {[{ id: 0, name: "All" }, ...categories].map((category, index) => (
+        <TouchableOpacity
+        onPress={() => {
+            setActiveCategoryIndex(index)
+            setSortData(index)
+        }}
+        style={[
+            {
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+                borderWidth: 1,
+                borderRadius: 10,
+                borderColor: "#32d191",
+                marginRight: 10,
+            },
+            activeCategoryIndex === index && {
+                backgroundColor: "#32d191",
+            },
+        ]}
+        key={category.id}
+    >
+        <Text
+            style={{
+                fontFamily: "Prompt_400Regular",
+                color:
+                    activeCategoryIndex === index
+                        ? "#ffffff"
+                        : "#666666",
+                fontSize: 14,
+            }}
+        >
+            {category.name}
+        </Text>
+    </TouchableOpacity>
+        ))}
+        </>
+      )}
+      </ScrollView>
+  </View>
+
+
+    <View>
+    <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContainer}
+      >
+        {getCourse && (
+        <>
+        
+<FlatList
+        data={getCourse}
+        keyExtractor={(item, index) => index.toString()}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+                  onPress={() => {
+                    // handle onPress
+                    router.push({
+                      pathname: '(course)/courseDetail',
+                      params: { 
+                        id: item.c_id 
+                      }, // ส่งพารามิเตอร์ id ของ order
+                    });
+                  }}>
+          <View style={styles.cardPro}>
+            <Image source={{ uri: 'https://learnsbuy.com/assets/uploads/' + item.image_course }} style={styles.imagePro1} />
+            <View style={styles.priceBadge}>
+              <Text style={styles.priceText}>{item.price_course}</Text>
+            </View>
+            <Text style={styles.courseTitle} numberOfLines={1} ellipsizeMode="tail"> {item.title_course} </Text>
+            <View style={styles.ratingContainer}>
+              <MaterialIcons name="star" size={16} color="#ffd700" />
+              <Text style={styles.rating}>{item.rating ? item.rating : '5.0'} </Text>
+              <Text style={styles.students}>
+                {item.view_course == 0 
+                  ? Math.floor(Math.random() * (100 - 500 + 1)) + 500  // Generate random number between 1000 and 2000
+                  : item.view_course} 
+                {' '} students
+              </Text>
+            </View>
+            <View style={styles.teacherContainer}>
+              <Text style={styles.teacherName}>{item.te_study}</Text>
+              <Text style={styles.category}>{item.code_course}</Text>
+            </View>
+          </View>
+          </TouchableOpacity>
+        )}
+        numColumns={2} // Display items in 2 columns
+        columnWrapperStyle={styles.row} // Style for rows
+        showsVerticalScrollIndicator={false}
+      />
+         </>
+    )}
+      </ScrollView>
+
+
+
+    </View>
+
+
+ 
+
+
+    
+
+</View>
+</View>
+
+      </ScrollView>
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  scrollContainer: {
+    paddingVertical: 10,
+    marginTop: 0
+  },
+  imagePro1: {
+    width: '100%',
+    height: 100,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  row: {
+    justifyContent: 'space-between',
+    
+  },
+  cardPro: {
+    width: (screenWidth / 2) - 30,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginHorizontal: 5,  
+    marginBottom: 8,
+    padding: 5,
+    borderWidth: 1,
+    borderColor: '#ddd'
+  },
+  imageProduct: {
+    width: '100%',
+    height: 100,
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  students: {
+    fontSize: 12,
+    color: '#666',
+    marginLeft: 5,
+  },
+  teacherContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  teacherName: {
+    fontSize: 12,
+    color: '#666',
+  },
+  priceBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: '#ed1c24',
+    borderRadius: 10,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+  },
+  ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    marginBottom: 5,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  category: {
+    fontSize: 12,
+    color: '#007bff',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
+  priceText: {
+    color: '#fff',
+    fontFamily: 'Prompt_500Medium',
+  },
+  courseTitle: {
+    fontSize: 13,
+    fontFamily: 'Prompt_400Regular',
+    marginBottom: 5,
+    color: '#000',
+  },
+  card: {
+    width: screenWidth * 0.7,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    marginRight: 15,
+    padding: 8,
+    borderWidth: 1,
+    borderColor: '#ddd'
+  },
+  image: {
+    width: '100%',
+    height: 160,
+    borderRadius: 10,
+  },
+  badge: {
     position: 'absolute',
+    top: 10,
+    left: 10,
+    backgroundColor: '#fff',
+    padding: 5,
+    borderRadius: 5,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  price: {
+    position: 'absolute',
+    bottom: 60,  
+    right: 12,
+    fontSize: 14,
+    color: '#fff',
+    fontFamily: 'Prompt_500Medium',
+    backgroundColor: '#ed1c24',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 50,
+  },
+  title: {
+    fontSize: 14,
+    fontFamily: 'Prompt_500Medium',
+    marginTop: 5,
+  },
+  courseInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 1,
+  },
+  lessonText: {
+    fontSize: 14,
+    color: '#000',
+    textAlignVertical: 'center',
+    marginLeft: 5
+  },
+  rating: {
+    fontSize: 12,
+    color: '#000',
+    borderRightWidth: 1,
+    borderColor: '#ddd',
+    marginRight: 1,
+    paddingRight: 3
+  },
+  durationText: {
+    fontSize: 14,
+    color: '#000',
+    textAlignVertical: 'center',
+    marginLeft: 5
+  },
+  menuHeader: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 5
+  },
+  menuHeader1: {
+    fontSize: 18,
+    fontFamily: 'Prompt_500Medium',
+  },
+  menuHeader2: {
+    fontSize: 16,
+    fontFamily: 'Prompt_400Regular',
+    textAlignVertical: 'bottom',
+    color: '#666'
+  },
+  containerBlue: {
+    backgroundColor: '#4ebd8c',
+    borderBottomLeftRadius: 25,
+    borderBottomRightRadius: 25,
+    height: 200,
+    position: 'absolute',
+    width: '100%'
+  },
+  borderAvatar: {
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 50,
+    padding: 4,
+    alignItems: 'center',
+  },
+  slideImg: {
+    marginTop: 0
+  },
+  pagination: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 6,
+  },
+  dot: {
+    width: 5,
+    height: 5,
+    borderRadius: 5,
+    marginHorizontal: 5,
+  },
+  activeDot: {
+    width: 8,
+    height: 8,
+    backgroundColor: '#4ebd8c',  // Color for the active dot
+  },
+  inactiveDot: {
+    backgroundColor: 'gray',  // Color for the inactive dots
+  },
+  container1: {
+    padding: 20,
+    marginTop: Platform.select({
+      ios: 35,
+      android: 25,
+    }),
+  },
+  profileMain: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  profile: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10
+  },
+  userImage: {
+    width: 45,
+    height: 45,
+    borderRadius: 99,
+  },
+  showflex: {
+    display: 'flex',
+    flexDirection: 'row',
+  },
+  boxGiff: {
+    position: 'static',
+    borderRadius: 10,
+    padding: 10,
+    marginTop: 12,
+    
+  },
+  boxGiffSlide: {
+    position: 'static',
+    borderRadius: 5,
+    marginTop: 10,
+  },
+  textGiffblack: {
+    color: Colors.gray,
+    fontSize: 17,
+    fontWeight: '700'
+  },
+  textGifforange: {
+    color: '#f47524',
+    fontSize: 18,
+    fontWeight: '700'
+  },
+  headGiff: {
+    display: 'flex',
+    flexDirection: 'row',
+    marginBottom: 5
+  },
+  giftContent: {
+    display: 'flex',
+    flexDirection: 'row'
   },
 });
