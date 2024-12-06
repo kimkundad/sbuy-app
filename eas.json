@@ -21,7 +21,7 @@
   "submit": {
     "production": {
       "android": {
-        "serviceAccountKeyPath": "./learnsbuy-92842-73027ecd4e75.json",
+        "serviceAccountKeyPath": "$GOOGLE_SERVICE_ACCOUNT_KEY_PATH",
         "track": "production"
       }
     }
