@@ -38,6 +38,7 @@ export default function RootLayout() {
         <Stack.Screen name="(aLogin)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(course)" options={{ headerShown: false }} />
+        <Stack.Screen name="(setting)" options={{ headerShown: false }}/>
       </Stack>
     </ThemeProvider>
     </UserProvider>

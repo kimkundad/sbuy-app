@@ -38,7 +38,7 @@ const MyCourse = () => {
 
     if (isExpired) {
       // Show alert if the course is expired
-      Alert.alert('หมดอายุ', 'คอร์สนี้หมดอายุแล้ว ติดต่อเจ้าหน้าที่', [{ text: 'OK' }]);
+      Alert.alert('คอร์สนี้หมดอายุแล้ว', 'กรุณาติดต่อเจ้าหน้าที่ LINE : @ZA-SHI', [{ text: 'OK' }]);
       return;
     }
 

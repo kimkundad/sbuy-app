@@ -54,11 +54,15 @@ export default function Login() {
       });
       
       
-      // Handle different `verify` statuses
+     
+      console.log('data-->', response.data)
+      
+      if (response.data.status === 200) {
+
+         // Handle different `verify` statuses
       const token = response.data.data.token;
       const user = response.data.data.profile;
-      console.log('token-->', user)
-      
+
       if (token) {
         // User is logged in successfully, save the tokens and user info
         await AsyncStorage.setItem('jwt_token', token);
@@ -73,23 +77,13 @@ export default function Login() {
         Alert.alert('Error', 'Something went wrong, please try again.');
       }
 
+    }else{
+      Alert.alert('Error', 'wrong email or password.');
+    }
+
     } catch (error) {
       console.log('Error during login:', error);
-    
-      if (error.response) {
-        // Server responded with a status other than 2xx
-        console.log('Error response status:', error.response.status);
-        console.log('Error response data:', error.response.data);
-        Alert.alert('Error', `Server responded with an error: ${error.response.data.message || 'Unknown error'}`);
-      } else if (error.request) {
-        // No response was received after the request was sent
-        console.log('No response received:', error.request);
-        Alert.alert('Error', 'No response received from server. Please check your internet connection or try again later.');
-      } else {
-        // Something else went wrong while setting up the request
-        console.log('Error setting up the request:', error.message);
-        Alert.alert('Error', 'An unexpected error occurred. Please try again.');
-      }
+  
     } finally {
       setLoading(false);
     }
@@ -122,6 +116,7 @@ export default function Login() {
                 placeholderTextColor="#6b7280"
                 style={styles.inputControl}
                 value={form.email}
+                keyboardType="email-address" // กำหนดประเภทของคีย์บอร์ดให้รองรับอีเมล
               />
             </View>
 

@@ -20,7 +20,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.kimkundad.learnsbuy"
+      "package": "com.app1.learnsbuy",
+      "versionCode": 7
     },
     "web": {
       "bundler": "metro",

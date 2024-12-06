@@ -27,12 +27,12 @@ const categories = [
     name: "ภาษาจีน",
   },
   {
-      id: 4,
-      name: "ภาษาเยอรมัน",
+    id: 4,
+    name: "ภาษาเยอรมัน",
   },
   {
-      id: 5,
-      name: "ภาษาอื่นๆ",
+    id: 5,
+    name: "ภาษาอื่นๆ",
   },
 ];
 
@@ -46,6 +46,7 @@ export default function HomeScreen({ navigation }) {
   const [getCourse, setCourse] = useState(false);
   const [activeCategoryIndex, setActiveCategoryIndex] = useState(0);
   const [sortData, setSortData] = useState(0)
+  const [myPoint, setMyPoint] = useState(0)
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -60,7 +61,7 @@ export default function HomeScreen({ navigation }) {
     const fetchSlide = async () => {
       try {
         const response = await axios.get('https://www.learnsbuy.com/api/slide_show_app');
-    
+
         // Set the data to state or handle the response
         setGetSlide(response.data.data);
       } catch (error) {
@@ -71,7 +72,7 @@ export default function HomeScreen({ navigation }) {
     const fetchPacKage = async () => {
       try {
         const response = await axios.get('https://www.learnsbuy.com/api/get_package_all_app');
-    
+
         // Set the data to state or handle the response
         setPacKage(response.data.data.get_package);
       } catch (error) {
@@ -79,10 +80,35 @@ export default function HomeScreen({ navigation }) {
       }
     };
 
+
+
     fetchPacKage();
     checkAuth();
     fetchSlide();
+
   }, []);
+
+
+  const get_userby_id = async () => {
+    try {
+      console.log('userProfile', userProfile?.id)
+      const response = await axios.get(`https://www.learnsbuy.com/api/get_userby_id/${userProfile?.id}`);
+
+      // Set the data to state or handle the response
+      setMyPoint(response?.data?.data?.user_coin);
+      console.log('user_coin', response?.data?.data?.user_coin)
+    } catch (error) {
+      console.error('Error fetching slides:', error);
+    }
+  };
+
+
+  // เรียก get_userby_id เฉพาะเมื่อ userProfile พร้อมแล้ว
+  useEffect(() => {
+    if (userProfile?.id) {
+      get_userby_id();
+    }
+  }, [userProfile?.id]); // ให้ useEffect ทำงานเมื่อ userProfile.id เปลี่ยนแปลง
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -100,120 +126,125 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     console.log('userProfile', userProfile)
   }, [userProfile]);
-  
+
   const padding = 20;
   const carouselWidth = screenWidth - padding * 2;
 
   return (
-    <SafeAreaProvider style={{ flex: 1, backgroundColor: '#fff' }} >
-      <ScrollView>
+    <SafeAreaProvider style={{ flex: 1, backgroundColor: '#fff' }}>
+      <View style={styles.containerBlue} />
+      <View style={styles.container1}>
+        <FlatList
+          data={getCourse} // Assuming `getCourse` is the main data
+          keyExtractor={(item, index) => index.toString()}
+          numColumns={2}
+          columnWrapperStyle={styles.row}
+          showsVerticalScrollIndicator={false}
 
-      <View >
+          // Header component with other content
+          ListHeaderComponent={() => (
+            <View >
+              {/* Profile Section */}
+              <View style={styles.profileMain}>
+                <View style={styles.profile}>
 
-<View style={styles.containerBlue} />
-<View style={styles.container1}>
-  {/* profileMain  */}
-  <View style={styles.profileMain}>
-    <View style={styles.profile}>
+                  <View style={styles.borderAvatar}>
+                    <Image
+                      style={styles.userImage}
+                      source={{ uri: 'https://wpnrayong.com/admin/assets/media/avatars/300-12.jpg' }} />
+                  </View>
 
-      <View style={styles.borderAvatar}>
-        <Image
-        style={styles.userImage}
-        source={{ uri: 'https://wpnrayong.com/admin/assets/media/avatars/300-12.jpg' }} />
-      </View>
-      
-{userProfile ? (
-      <View>
-        <View style={styles.showflex}>
-          <Text style={{
-            color: Colors.white, fontSize: 14, fontFamily: 'Prompt_500Medium', fontWeight: 700, marginRight: 5
-          }}>POINT</Text>
-          <Text style={{
-            color: Colors.white, fontSize: 14, fontFamily: 'Prompt_400Regular', 
-          }}>{userProfile.user_coin}</Text>
-        </View>
-          <Text style={{ color: Colors.white, fontSize: 18, fontFamily: 'Prompt_400Regular', marginTop: -5 }}>{userProfile.name},</Text>
-      </View>
-      ) : (
-        <Text style={{ color: Colors.white, fontSize: 20 }}>Loading...</Text>
-      )}
-    </View>
+                  {userProfile ? (
+                    <View>
+                      <View style={styles.showflex}>
+                        <Text style={{
+                          color: Colors.white, fontSize: 12, fontFamily: 'Prompt_500Medium', fontWeight: 700, marginRight: 5
+                        }}>POINT</Text>
+                        <Text style={{
+                          color: Colors.white, fontSize: 12, fontFamily: 'Prompt_400Regular', marginTop: -2
+                        }}>{myPoint?.toLocaleString()}</Text>
+                      </View>
+                      <Text style={{ color: Colors.white, fontSize: 16, fontFamily: 'Prompt_400Regular', marginTop: -5 }}>{userProfile.name},</Text>
+                    </View>
+                  ) : (
+                    <Text style={{ color: Colors.white, fontSize: 20 }}>Loading...</Text>
+                  )}
+                </View>
 
-    <TouchableOpacity
-      onPress={() => {
-        // handle onPress
-      }}>
-      <View>
-        <Ionicons name="notifications-outline" size={27} color="white" />
-      </View>
-      </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    // handle onPress
+                  }}>
+                  <View>
+                    <Ionicons name="notifications-outline" size={27} color="white" />
+                  </View>
+                </TouchableOpacity>
 
-  </View>
-  {/* profileMain  */}
-  
-  <View style={styles.slideImg}>
-  <View style={styles.boxGiffSlide}>
+              </View>
 
-    <View>
-    {Array.isArray(getSlide) && getSlide.length > 0 ? (
-        <>
-      <Carousel
-        loop
-        width={carouselWidth}
-        height={150}
-        autoPlay={true}
-        autoPlayInterval={4000}
-        data={getSlide}
-        scrollAnimationDuration={1000}
-        onSnapToItem={(index) => setActiveIndex(index)}  // Track the active slide
-        renderItem={({ index }) => (
+              {/* Slider Section */}
+              <View style={styles.slideImg}>
+                <View style={styles.boxGiffSlide}>
 
-          <View>
-            <Image
-              source={{ uri: getSlide[index] }}  // นำ URL มาแสดงเป็นภาพ
-              style={{
-                width: '100%',
-                height: '100%',
-                resizeMode: 'cover',
-                borderRadius: 5,
-              }}
-            />
-          </View>
+                  <View>
+                    {Array.isArray(getSlide) && getSlide.length > 0 ? (
+                      <>
+                        <Carousel
+                          loop
+                          width={carouselWidth}
+                          height={150}
+                          autoPlay={true}
+                          autoPlayInterval={4000}
+                          data={getSlide}
+                          scrollAnimationDuration={1000}
+                          onSnapToItem={(index) => setActiveIndex(index)}  // Track the active slide
+                          renderItem={({ index }) => (
 
-        )}
-      />
-      {/* Custom Pagination Dots */}
-      <View style={styles.pagination}>
-            {getSlide.map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.dot,
-                  index === activeIndex ? styles.activeDot : styles.inactiveDot, // Different styles for active and inactive dots
-                ]}
-              />
-            ))}
-          </View>
-          </>
-        ) : (
-        <View>
-          <Text style={{ color: Colors.white, fontSize: 20 }}>Loading...</Text>
-        </View>
-      )}
-    </View>
+                            <View>
+                              <Image
+                                source={{ uri: getSlide[index] }}  // นำ URL มาแสดงเป็นภาพ
+                                style={{
+                                  width: '100%',
+                                  height: '100%',
+                                  resizeMode: 'cover',
+                                  borderRadius: 5,
+                                }}
+                              />
+                            </View>
 
-  </View>
-  </View>
+                          )}
+                        />
+                        {/* Custom Pagination Dots */}
+                        <View style={styles.pagination}>
+                          {getSlide.map((_, index) => (
+                            <View
+                              key={index}
+                              style={[
+                                styles.dot,
+                                index === activeIndex ? styles.activeDot : styles.inactiveDot, // Different styles for active and inactive dots
+                              ]}
+                            />
+                          ))}
+                        </View>
+                      </>
+                    ) : (
+                      <View>
+                        <Text style={{ color: Colors.white, fontSize: 20 }}>Loading...</Text>
+                      </View>
+                    )}
+                  </View>
 
-
-  <View style={styles.menuHeader}>
-    <Text style={styles.menuHeader1}>แพ็กเกจสุดคุ้ม</Text>
-    <Text style={styles.menuHeader2}>ทั้งหมด</Text>
-  </View>
+                </View>
+              </View>
 
 
-    <View>
-    <ScrollView
+              {/* Packages Section */}
+              <View style={styles.menuHeader}>
+                <Text style={styles.menuHeader1}>แพ็กเกจสุดคุ้ม</Text>
+                <Text style={styles.menuHeader2}>ทั้งหมด</Text>
+              </View>
+
+              <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
       style={styles.scrollContainer}
@@ -223,28 +254,11 @@ export default function HomeScreen({ navigation }) {
       {getPacKage.map((pack, index) => (
         <View key={index} style={styles.card}>
           <Image source={{ uri: 'https://learnsbuy.com/assets/uploads/' + pack.c_pack_image }} style={styles.image} />
-          <Text style={styles.price} >{pack.c_pack_price}</Text>
+          <Text style={styles.price} >{pack.c_pack_price?.toLocaleString()}</Text>
           <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">{pack.c_pack_name}</Text>
           <View style={{ paddingHorizontal: 5 }}>
           <View style={styles.courseInfo}>
-
-
           
-            <View style={styles.showflex}>
-            <Ionicons name="play-circle" size={20} color="#000" />
-            <Text style={styles.lessonText} >
-              {pack.pack_count ? pack.pack_count : 0} Lessons
-            </Text>
-            </View>
-
-            <View style={styles.showflex}>
-            <Ionicons name="time-outline" size={20} color="#000" />
-            <Text style={styles.durationText}>
-               {pack.pack_hr ? pack.pack_hr : '0h'}
-            </Text>
-            </View>
-          
-
           </View>
           </View>
         </View>
@@ -252,132 +266,62 @@ export default function HomeScreen({ navigation }) {
       </>
     )}
     </ScrollView>
-    </View>
 
-
-    <View style={styles.menuHeader}>
-      <Text style={styles.menuHeader1}>คอร์สเรียนทั้งหมด</Text>
-    </View>
-
-    <View>
-  <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={styles.scrollContainer}
-    >
-      {categories && (
-        <>
-      {[{ id: 0, name: "All" }, ...categories].map((category, index) => (
-        <TouchableOpacity
-        onPress={() => {
-            setActiveCategoryIndex(index)
-            setSortData(index)
-        }}
-        style={[
-            {
-                paddingHorizontal: 10,
-                paddingVertical: 5,
-                borderWidth: 1,
-                borderRadius: 10,
-                borderColor: "#32d191",
-                marginRight: 10,
-            },
-            activeCategoryIndex === index && {
-                backgroundColor: "#32d191",
-            },
-        ]}
-        key={category.id}
-    >
-        <Text
-            style={{
-                fontFamily: "Prompt_400Regular",
-                color:
-                    activeCategoryIndex === index
-                        ? "#ffffff"
-                        : "#666666",
-                fontSize: 14,
-            }}
-        >
-            {category.name}
-        </Text>
-    </TouchableOpacity>
-        ))}
-        </>
-      )}
-      </ScrollView>
-  </View>
-
-
-    <View>
-    <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContainer}
-      >
-        {getCourse && (
-        <>
-        
-<FlatList
-        data={getCourse}
-        keyExtractor={(item, index) => index.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-                  onPress={() => {
-                    // handle onPress
-                    router.push({
-                      pathname: '(course)/courseDetail',
-                      params: { 
-                        id: item.c_id 
-                      }, // ส่งพารามิเตอร์ id ของ order
-                    });
-                  }}>
-          <View style={styles.cardPro}>
-            <Image source={{ uri: 'https://learnsbuy.com/assets/uploads/' + item.image_course }} style={styles.imagePro1} />
-            <View style={styles.priceBadge}>
-              <Text style={styles.priceText}>{item.price_course}</Text>
+              {/* Categories Section */}
+              <View style={styles.menuHeader}>
+                <Text style={styles.menuHeader1}>คอร์สเรียนทั้งหมด</Text>
+              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.scrollContainer}
+              >
+                {/* Category Items here */}
+              </ScrollView>
             </View>
-            <Text style={styles.courseTitle} numberOfLines={1} ellipsizeMode="tail"> {item.title_course} </Text>
-            <View style={styles.ratingContainer}>
-              <MaterialIcons name="star" size={16} color="#ffd700" />
-              <Text style={styles.rating}>{item.rating ? item.rating : '5.0'} </Text>
-              <Text style={styles.students}>
-                {item.view_course == 0 
-                  ? Math.floor(Math.random() * (100 - 500 + 1)) + 500  // Generate random number between 1000 and 2000
-                  : item.view_course} 
-                {' '} students
-              </Text>
+          )}
+
+          renderItem={({ item }) => (
+
+            <View style={styles.scrollContainer}>
+              <TouchableOpacity
+                onPress={() => {
+                  router.push({
+                    pathname: '(course)/courseDetail',
+                    params: { id: item.c_id },
+                  });
+                }}
+              >
+                <View style={styles.cardPro}>
+                  <Image source={{ uri: 'https://learnsbuy.com/assets/uploads/' + item.image_course }} style={styles.imagePro1} />
+                  <View style={styles.priceBadge}>
+                    <Text style={styles.priceText}>{item.price_course?.toLocaleString()}</Text>
+                  </View>
+                  <Text style={styles.courseTitle} numberOfLines={1} ellipsizeMode="tail">
+                    {item.title_course}
+                  </Text>
+                  <View style={styles.ratingContainer}>
+                    <MaterialIcons name="star" size={16} color="#ffd700" />
+                    <Text style={styles.rating}>{item.rating ? item.rating : '5.0'}</Text>
+                    <Text style={styles.students}>
+                      {item.view_course === 0 ? Math.floor(Math.random() * (100 - 500 + 1)) + 500 : item.view_course} students
+                    </Text>
+                  </View>
+                  <View style={styles.teacherContainer}>
+                    <Text style={styles.teacherName}>{item.te_study}</Text>
+                    <Text style={styles.category}>{item.code_course}</Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+
             </View>
-            <View style={styles.teacherContainer}>
-              <Text style={styles.teacherName}>{item.te_study}</Text>
-              <Text style={styles.category}>{item.code_course}</Text>
-            </View>
-          </View>
-          </TouchableOpacity>
-        )}
-        numColumns={2} // Display items in 2 columns
-        columnWrapperStyle={styles.row} // Style for rows
-        showsVerticalScrollIndicator={false}
-      />
-         </>
-    )}
-      </ScrollView>
-
-
-
-    </View>
-
-
- 
-
-
-    
-
-</View>
-</View>
-
-      </ScrollView>
+          )}
+        />
+      </View>
     </SafeAreaProvider>
   );
+
+
 }
 
 const styles = StyleSheet.create({
@@ -393,14 +337,14 @@ const styles = StyleSheet.create({
   },
   row: {
     justifyContent: 'space-between',
-    
+
   },
   cardPro: {
     width: (screenWidth / 2) - 30,
     backgroundColor: '#fff',
     borderRadius: 10,
-    marginHorizontal: 5,  
-    marginBottom: 8,
+    marginHorizontal: 5,
+    marginBottom: 0,
     padding: 5,
     borderWidth: 1,
     borderColor: '#ddd'
@@ -480,7 +424,7 @@ const styles = StyleSheet.create({
   },
   price: {
     position: 'absolute',
-    bottom: 60,  
+    bottom: 40,
     right: 12,
     fontSize: 14,
     color: '#fff',
@@ -606,7 +550,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     marginTop: 12,
-    
+
   },
   boxGiffSlide: {
     position: 'static',

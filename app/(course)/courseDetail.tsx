@@ -3,8 +3,8 @@ import { RouteProp, useRoute } from '@react-navigation/native'; // Import useRou
 import { Image, View, Text, TouchableOpacity, StyleSheet, Platform, Dimensions, ScrollView, Alert, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
-import { Ionicons, MaterialIcons, FontAwesome5, Feather  } from '@expo/vector-icons';
-import { Stack, router ,useRouter , useLocalSearchParams  } from 'expo-router';
+import { Ionicons, MaterialIcons, FontAwesome5, Feather } from '@expo/vector-icons';
+import { Stack, router, useRouter, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
@@ -17,7 +17,7 @@ const CourseDetail = () => {
     const router = useRouter();
     const params = useLocalSearchParams();
     const { id = 52, other } = params;
-    console.log('params' , params?.id)
+    console.log('params', params?.id)
     const [data, setData] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -34,23 +34,23 @@ const CourseDetail = () => {
                     const response = await axios.post(`https://www.learnsbuy.com/api/getCourseByID/${id}`, { token: token });
                     // Set the data to state or handle the response
                     setData(response.data.courses);
-                    
+
                 } else {
                     navigation.navigate('(aLogin)');
                 }
 
-               
-              } catch (error) {
-                console.error('Error fetching slides:', error);
-              } finally {
-                setLoading(false);
-              }
 
-          
+            } catch (error) {
+                console.error('Error fetching slides:', error);
+            } finally {
+                setLoading(false);
+            }
+
+
         };
-    
+
         fetchData();
-      }, [id]); // Depend on id to refetch when it changes
+    }, [id]); // Depend on id to refetch when it changes
 
     return (
         <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -78,35 +78,35 @@ const CourseDetail = () => {
                 ),
             }} />
 
-<ScrollView contentContainerStyle={styles.scrollContainer}>
+            <ScrollView contentContainerStyle={styles.scrollContainer}>
                 {/* Course Image and Details */}
-                
+
 
                 <View style={styles.detailsContainer}>
                     {data?.courses?.url_youtube ? (
                         // If YouTube URL is available, embed the video
                         <WebView
-                        style={styles.video}
-                        javaScriptEnabled={true}
-                        domStorageEnabled={true}
-                        source={{ uri: data?.courses?.url_youtube }}  // Load YouTube video
+                            style={styles.video}
+                            javaScriptEnabled={true}
+                            domStorageEnabled={true}
+                            source={{ uri: data?.courses?.url_youtube }}  // Load YouTube video
                         />
                     ) : (
                         // Otherwise, show the course image
                         <Image
-                        source={{ uri: 'https://learnsbuy.com/assets/uploads/' + data?.courses?.image_course }}
-                        style={styles.courseImage}
+                            source={{ uri: 'https://learnsbuy.com/assets/uploads/' + data?.courses?.image_course }}
+                            style={styles.courseImage}
                         />
                     )}
-                    <Text style={styles.courseTitle}>{ data?.courses?.title_course }</Text>
+                    <Text style={styles.courseTitle}>{data?.courses?.title_course}</Text>
                     <View style={styles.courseInfo}>
                         <View style={styles.infoItem}>
-                        <Ionicons name="time-outline" size={20} color="#014b2d" />
+                            <Ionicons name="time-outline" size={20} color="#014b2d" />
                             <Text style={styles.hrstyle}> {data?.courses?.pack_hr ? data?.courses?.pack_hr : '2h'}</Text>
                         </View>
                         <View style={styles.infoItem}>
                             <Feather name="box" size={14} color="#014b2d" />
-                            <Text style={{ color: '#014b2d' }}> { data?.courses?.code_course }</Text>
+                            <Text style={{ color: '#014b2d' }}> {data?.courses?.code_course}</Text>
                         </View>
                         <View style={styles.infoItemStart}>
                             <MaterialIcons name="star" size={16} color="#ffd700" />
@@ -114,8 +114,8 @@ const CourseDetail = () => {
                         </View>
                     </View>
 
-                    
-                    
+
+
 
                     {/* Lesson List */}
                     <View style={styles.lessonSection}>
@@ -125,70 +125,70 @@ const CourseDetail = () => {
 
 
                         <View style={styles.postContentContainer}>
-                        {data?.courses?.detail_course.length > 300 ? (
-                            showMore ? (
-                                <TouchableOpacity onPress={() => setShowMore(!showMore)}>
-                                    <Text style={styles.postDescription}>{data?.courses?.detail_course}</Text>
-                                    <Text style={styles.seeMore}>Show less</Text>
-                                </TouchableOpacity>
+                            {data?.courses?.detail_course.length > 300 ? (
+                                showMore ? (
+                                    <TouchableOpacity onPress={() => setShowMore(!showMore)}>
+                                        <Text style={styles.postDescription}>{data?.courses?.detail_course}</Text>
+                                        <Text style={styles.seeMore}>Show less</Text>
+                                    </TouchableOpacity>
+                                ) : (
+                                    <TouchableOpacity onPress={() => setShowMore(!showMore)}>
+                                        <Text style={styles.postDescription}>
+                                            {`${data?.courses?.detail_course.slice(0, 300)}... `}
+                                        </Text>
+                                        <Text style={styles.seeMore}>Show more</Text>
+                                    </TouchableOpacity>
+                                )
                             ) : (
-                                <TouchableOpacity onPress={() => setShowMore(!showMore)}>
-                                    <Text style={styles.postDescription}>
-                                        {`${data?.courses?.detail_course.slice(0, 300)}... `}
-                                    </Text>
-                                    <Text style={styles.seeMore}>Show more</Text>
-                                </TouchableOpacity>
-                            )
-                        ) : (
-                            <Text style={styles.postDescription}>{data?.courses?.detail_course}</Text>
-                        )}
-                    </View>
+                                <Text style={styles.postDescription}>{data?.courses?.detail_course}</Text>
+                            )}
+                        </View>
 
-                    <View style={{ marginTop: 10 }}></View>
+                        <View style={{ marginTop: 10 }}></View>
 
 
                         <View style={styles.lessonHeader}>
                             <Text style={styles.lessonTitle}>Lessons</Text>
-                            
+
                         </View>
                         <View>
-                        <Text style={styles.lessonMeta}>{ data?.count_video.length } Lessons</Text>
+                            <Text style={styles.lessonMeta}>{data?.count_video.length} Lessons</Text>
                         </View>
 
 
                         <View style={{ marginTop: 10 }}>
-  {/* Lesson Items */}
-  {data?.count_video && (
-    <View>
-      {data?.count_video.map((video, index) => (
-        <View key={video.id} style={styles.lessonItem}>
-          <View>
-            <Image
-              source={{ uri: 'https://learnsbuy.com/assets/uploads/' + video?.thumbnail_img }} // Replace with actual course image URL
-              style={styles.videoImg}
-            />
-          </View>
-          <View style={styles.lessonInfo}>
-            <Text style={styles.lessonName}>{video?.course_video_name}</Text>
-            <Text style={styles.lessonDuration}>{video?.time_video ? video?.time_video : '20'} min</Text>
-          </View>
-          <View style={styles.lessonActions}>
-            <View style={styles.playIcon}>
-              <View
-                style={{
-                  padding: 4,
-                  borderRadius: 50,
-                }}
-              >
-                <Ionicons name="play-circle-outline" size={24} color="#dc3545" />
-              </View>
-            </View>
-          </View>
-        </View>
-      ))}
-    </View>
-  )}
-</View>
+                            {/* Lesson Items */}
+                            {data?.count_video && (
+                                <View>
+                                    {data?.count_video.map((video, index) => (
+                                        <View key={video.id} style={styles.lessonItem}>
+                                            <View>
+                                                <Image
+                                                    source={{ uri: 'https://learnsbuy.com/assets/uploads/' + video?.thumbnail_img }} // Replace with actual course image URL
+                                                    style={styles.videoImg}
+                                                />
+                                            </View>
+                                            <View style={styles.lessonInfo}>
+                                                <Text style={styles.lessonName}>{video?.course_video_name}</Text>
+                                                <Text style={styles.lessonDuration}>{video?.time_video ? video?.time_video : '20'} min</Text>
+                                            </View>
+                                            <View style={styles.lessonActions}>
+                                                <View style={styles.playIcon}>
+                                                    <View
+                                                        style={{
+                                                            padding: 4,
+                                                            borderRadius: 50,
+                                                        }}
+                                                    >
+                                                        <Ionicons name="play-circle-outline" size={24} color="#dc3545" />
+                                                    </View>
+                                                </View>
+                                            </View>
+                                        </View>
+                                    ))}
+                                </View>
+                            )}
+                        </View>
 
 
                     </View>
@@ -209,7 +209,7 @@ const styles = StyleSheet.create({
         marginTop: Platform.select({
             ios: 80,
             android: 70,
-          }),
+        }),
     },
     postDescription: {
         paddingTop: 0,
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 220,
         borderRadius: 20,
-      },
+    },
     playIcon: {
         backgroundColor: 'rgba(244, 67, 54, 0.2)',
         borderRadius: 50,
@@ -363,6 +363,6 @@ const styles = StyleSheet.create({
     lessonActions: {
         flexDirection: 'row',
         alignItems: 'center',
-        
+
     },
 });

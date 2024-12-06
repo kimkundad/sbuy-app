@@ -8,6 +8,7 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import * as ScreenCapture from 'expo-screen-capture';
 
 export default function HomeScreen() {
     const navigation = useNavigation();
@@ -15,6 +16,8 @@ export default function HomeScreen() {
     const { id = 52 } = params;
 
     const video = useRef(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [controlsVisible, setControlsVisible] = useState(true);
     const scrollViewRef = useRef(null);  // ScrollView ref
     const [point, setPoint] = useState(0);
     const [status, setStatus] = useState({});
@@ -22,6 +25,23 @@ export default function HomeScreen() {
     const [data, setData] = useState(null);
     const [selectedVideo, setSelectedVideo] = useState(null);
     const intervalRef = useRef(null); // To store the interval reference
+
+    const togglePlayback = async () => {
+        if (video.current) {
+            const status = await video.current.getStatusAsync();
+            if (status.isPlaying) {
+                await video.current.pauseAsync();
+                setIsPlaying(false);
+            } else {
+                await video.current.playAsync();
+                setIsPlaying(true);
+            }
+        }
+    };
+
+    const toggleControls = () => {
+        setControlsVisible(!controlsVisible); // สลับการแสดง/ซ่อนแถบควบคุม
+    };
 
     // Function to handle point deduction
     const startDeductingPoints = () => {
@@ -77,6 +97,14 @@ export default function HomeScreen() {
             stopDeductingPoints();
         };
     }, [status.isPlaying]);
+
+    useEffect(() => {
+        ScreenCapture.preventScreenCaptureAsync(); // ป้องกันการจับภาพหน้าจอเมื่อเข้าหน้านี้
+    
+        return () => {
+            ScreenCapture.allowScreenCaptureAsync(); // อนุญาตการจับภาพหน้าจอเมื่อออกจากหน้าจอนี้
+        };
+    }, []);
 
     useEffect(() => {
 
@@ -141,44 +169,54 @@ export default function HomeScreen() {
         const loadVideo = async () => {
             if (selectedVideo?.url && video.current) {
                 try {
-                    // Unload any previous video before loading a new one
-                    await video.current.unloadAsync();
-
+                    // ตรวจสอบสถานะการเล่นวิดีโอ
+                    const status = await video.current.getStatusAsync();
+    
+                    // Unload วิดีโอก่อนหน้า ถ้ายังมีวิดีโอที่เล่นอยู่
+                    if (status.isLoaded) {
+                        await video.current.unloadAsync();
+                    }
+    
                     // Log the selected video URL for debugging
                     console.log("Loading video URL:", selectedVideo?.url);
-
-                    // Load the new video source
+    
+                    // Load วิดีโอใหม่และตั้งค่าให้เล่นอัตโนมัติ
                     await video.current.loadAsync(
                         { uri: selectedVideo.url },
-                        { shouldPlay: true }  // Automatically play the video once loaded
+                        { shouldPlay: true }
                     );
+    
                 } catch (error) {
                     console.error('Error loading video:', error);
                     Alert.alert('Error', `Failed to load video: ${error.message}`);
                 }
             }
         };
-
+    
         loadVideo();
     }, [selectedVideo?.url]);
+    
 
     const handleVideoSelect = (video) => {
         const videoUrl = video?.course_video_url;
-
-        // Log the selected video URL for debugging
-        console.log("Selected video URL:", videoUrl);
-
-        // Set the selected video details when a video is pressed
-        setSelectedVideo({
-            title: video.course_video_name,
-            url: videoUrl,
-        });
-
-        // Scroll to the top of the ScrollView
-        if (scrollViewRef.current) {
-            scrollViewRef.current.scrollTo({ y: 0, animated: true });
+    
+        // ตรวจสอบว่าคลิปที่เลือกเป็นคนละคลิปกับที่กำลังเล่นอยู่
+        if (videoUrl !== selectedVideo?.url) {
+            console.log("Selected video URL:", videoUrl);
+    
+            // Set the selected video details when a video is pressed
+            setSelectedVideo({
+                title: video.course_video_name,
+                url: videoUrl,
+            });
+    
+            // Scroll to the top of the ScrollView
+            if (scrollViewRef.current) {
+                scrollViewRef.current.scrollTo({ y: 0, animated: true });
+            }
         }
     };
+    
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -212,29 +250,35 @@ export default function HomeScreen() {
                 <View style={styles.mainPage}>
                     <View style={{ paddingHorizontal: 10 }}>
                         <Text style={styles.courseTitle}>
-                            {selectedVideo ? selectedVideo.title : 'Select a video to view details'}
+                            {selectedVideo ? selectedVideo?.title : 'Select a video to view details'}
                         </Text>
                     </View>
                 </View>
 
                 <View style={styles.container}>
-                    <Video
-                        ref={video}
-                        style={isFullscreen ? styles.fullscreenVideo : styles.video}
-                        source={{
-                            uri: selectedVideo?.url || 'https://learnsbuy.com/assets/videos/1709478799.mp4', // Default video source (fallback)
-                        }}
-                        useNativeControls
-                        resizeMode={ResizeMode.CONTAIN}
-                        onPlaybackStatusUpdate={(status) => setStatus(() => status)}
-                        onFullscreenUpdate={async ({ fullscreenUpdate }) => {
-                            if (fullscreenUpdate === VideoFullscreenUpdate.PLAYER_WILL_PRESENT) {
-                                await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-                            } else if (fullscreenUpdate === VideoFullscreenUpdate.PLAYER_WILL_DISMISS) {
-                                await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
-                            }
-                        }}
-                    />
+                <Video
+    ref={video}
+    style={isFullscreen ? styles.fullscreenVideo : styles.video}
+    source={{
+        uri: selectedVideo?.url || 'https://learnsbuy.com/assets/videos/1709478799.mp4', // Default video source (fallback)
+    }}
+    useNativeControls
+    resizeMode={ResizeMode.CONTAIN}
+    onPlaybackStatusUpdate={(status) => setStatus(() => status)}
+    onFullscreenUpdate={async ({ fullscreenUpdate }) => {
+        if (fullscreenUpdate === VideoFullscreenUpdate.PLAYER_WILL_PRESENT) {
+            setIsFullscreen(true);
+            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+        } else if (fullscreenUpdate === VideoFullscreenUpdate.PLAYER_WILL_DISMISS) {
+            setIsFullscreen(false);
+            // หน่วงเวลาเล็กน้อยก่อนที่จะเปลี่ยนการตั้งค่าหน้าจอกลับไปที่แนวตั้ง
+            setTimeout(async () => {
+                await ScreenOrientation.unlockAsync(); // ปลดล็อคการหมุนหน้าจอ
+                await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP); // กลับไปยังโหมดแนวตั้ง
+            }, 500); // หน่วงเวลา 500ms เพื่อให้การเปลี่ยนทิศทางหน้าจอมีเวลาทำงานบน iOS
+        }
+    }}
+/>
                 </View>
 
                 <View>
