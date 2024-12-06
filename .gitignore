@@ -10,6 +10,11 @@ npm-debug.*
 *.orig.*
 web-build/
 
+@kimkundad__learnsbuy.jks
+learnsbuy-92842-73027ecd4e75.json
+MyUpload_certificate.pem
+upload_certificate.pem
+upload-keystore.jks
 # macOS
 .DS_Store
 
