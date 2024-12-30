@@ -438,6 +438,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: 'Prompt_500Medium',
     marginTop: 5,
+    paddingHorizontal: 5
   },
   courseInfo: {
     flexDirection: 'row',
