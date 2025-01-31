@@ -1,5 +1,5 @@
-import { Image, View, Text, StyleSheet, Dimensions, Platform, TextInput, Alert, ActivityIndicator, TouchableOpacity, FlatList, ScrollView } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Image, View, Text, StyleSheet, Dimensions, Platform, TextInput, Alert, ImageBackground, ActivityIndicator, TouchableOpacity, FlatList, ScrollView } from 'react-native';
+import { SafeAreaView  } from 'react-native-safe-area-context';
 import { Link, useNavigation, router, Stack, useRouter } from 'expo-router';
 import React, { useEffect, useContext, useState } from 'react';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
@@ -10,6 +10,17 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserContext } from '../../hooks/UserContext';
 import axios from 'axios';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import {
+  configureReanimatedLogger,
+  ReanimatedLogLevel,
+} from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
+
+// This is the default configuration
+configureReanimatedLogger({
+  level: ReanimatedLogLevel.warn,
+  strict: false, // Reanimated runs in strict mode by default
+});
 
 const { width: screenWidth } = Dimensions.get('window');
 
@@ -91,12 +102,12 @@ export default function HomeScreen({ navigation }) {
 
   const get_userby_id = async () => {
     try {
-      console.log('userProfile', userProfile?.id)
+    //  console.log('userProfile', userProfile?.id)
       const response = await axios.get(`https://www.learnsbuy.com/api/get_userby_id/${userProfile?.id}`);
 
       // Set the data to state or handle the response
       setMyPoint(response?.data?.data?.user_coin);
-      console.log('user_coin', response?.data?.data?.user_coin)
+    //  console.log('user_coin', response?.data?.data?.user_coin)
     } catch (error) {
       console.error('Error fetching slides:', error);
     }
@@ -131,8 +142,8 @@ export default function HomeScreen({ navigation }) {
   const carouselWidth = screenWidth - padding * 2;
 
   return (
-    <SafeAreaProvider style={{ flex: 1, backgroundColor: '#fff' }}>
-      <View style={styles.containerBlue} />
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+      <StatusBar style="dark" />
       <View style={styles.container1}>
         <FlatList
           data={getCourse} // Assuming `getCourse` is the main data
@@ -181,6 +192,7 @@ export default function HomeScreen({ navigation }) {
                 </TouchableOpacity>
 
               </View>
+            
 
               {/* Slider Section */}
               <View style={styles.slideImg}>
@@ -318,7 +330,7 @@ export default function HomeScreen({ navigation }) {
           )}
         />
       </View>
-    </SafeAreaProvider>
+    </SafeAreaView >
   );
 
 
@@ -521,8 +533,7 @@ const styles = StyleSheet.create({
   container1: {
     padding: 20,
     marginTop: Platform.select({
-      ios: 35,
-      android: 25,
+ 
     }),
   },
   profileMain: {

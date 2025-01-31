@@ -6,11 +6,6 @@ import { useEffect, useState  } from 'react';
 import 'react-native-reanimated';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { UserProvider } from '../hooks/UserContext';
-import { enableLayoutAnimations } from 'react-native-reanimated';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-enableLayoutAnimations(true);
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -27,6 +22,21 @@ export default function RootLayout() {
 
   useEffect(() => {
     loadFonts();
+    
+    async function prepare() {
+      try {
+        // ซ่อน Splash Screen เมื่อพร้อม
+        await SplashScreen.preventAutoHideAsync();
+        setTimeout(SplashScreen.hideAsync, 25000);
+      } catch (e) {
+        console.warn(e);
+      } finally {
+        await SplashScreen.hideAsync();
+      }
+    }
+
+    prepare();
+
   }, []);
 
   if (!fontsLoaded) {
