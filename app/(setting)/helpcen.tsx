@@ -10,7 +10,7 @@ import { AntDesign } from '@expo/vector-icons';
 import { Feather } from '@expo/vector-icons';
 import { Entypo } from '@expo/vector-icons';
 import { FontAwesome } from '@expo/vector-icons';
-
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
@@ -72,33 +72,39 @@ const Helpcen = () => {
     
     return (
         <SafeAreaProvider style={{ flex: 1, backgroundColor: '#fff' }} >
-            <Stack.Screen options={{
-                    headerTransparent: true,
-                    headerTitle: 'ติดต่อเรา ครูพี่โฮม',
-                    headerTitleAlign: 'center', // Center the header title
-                    headerTitleStyle: {
-                        color: 'black', // กำหนดสีของ headerTitle
-                        fontFamily: 'Prompt_500Medium', // กำหนดฟอนต์
-                        fontSize: 16
-                    },
-                    contentStyle: {
-                      backgroundColor: 'white', // เพิ่มพื้นหลังสีขาวให้กับหน้าจอ
-                    },
-                    headerLeft: () => (
-                        <TouchableOpacity style={styles.backIcon} onPress={() => navigation.goBack()}>
-                        <View
-                            style={{
-                                backgroundColor: '#fff',
-                                padding: 6,
-                                borderRadius: 50
-                            }}
-                        >
-                            <Ionicons name="chevron-back" size={20} color="black" />
+            
+            <LinearGradient
+                colors={['#4EBD8C', '#4EBD8C', '#6AD1A4']}
+                start={{ x: 0, y: 1 }}
+                end={{ x: 0, y: 0 }}
+                style={styles.headerGradient}
+            >
+                <View style={styles.listItemCon}>
+                    <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10 }}>
+                        <TouchableOpacity style={styles.btnBack} onPress={() => router.push('(tabs)/setting')}>
+                            <View
+                                style={{
+                                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                    padding: 5,
+                                    borderRadius: 25
+                                }}
+                            >
+                                <Ionicons name="chevron-back" size={20} color="black" />
+                            </View>
+                        </TouchableOpacity>
+
+                        <View style={styles.textListHead}>
+                            <Text style={{ fontSize: 18, fontFamily: 'Prompt_500Medium', color: '#fff', textAlign: 'center' }}>
+                                ติดต่อเรา
+                            </Text>
                         </View>
-                    </TouchableOpacity>
-                    ),
-                    
-                }} />
+
+                        {/* ใช้ View เปล่าทางขวาเพื่อให้ไอคอน Back และ Text อยู่ตรงกลาง */}
+                        <View style={{ width: 32 }} />
+                    </View>
+
+                </View>
+            </LinearGradient>
             <ScrollView>
                 
                 <View>
@@ -194,7 +200,43 @@ const Helpcen = () => {
 export default Helpcen
 
 const styles = StyleSheet.create({
-
+    headerGradient: {
+        height: Platform.select({
+            ios: 85,
+            android: 55,
+        }),
+        width: '100%',
+    },
+    textListHead: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 10,
+        fontFamily: 'Prompt_400Regular',
+    },
+    listItemCon: {
+        marginTop: Platform.select({
+            ios: 35,
+            android: 10,
+        }),
+        paddingHorizontal: 0,
+        // iOS shadow properties
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 1,
+        // Android shadow (elevation)
+        elevation: 10,
+    },
+    btnBack: {
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: 25,
+        padding: 4,
+        alignItems: 'center',
+    },
     container: {
         padding: 10,
         paddingHorizontal: 12,
@@ -242,13 +284,7 @@ const styles = StyleSheet.create({
         borderRadius: 99,
         width: 200,
     },
-    textListHead: {
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 10,
-        fontFamily: 'Prompt_400Regular',
-    },
+
     iconAdd: {
         color: '#f47524',
     },
@@ -266,21 +302,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         marginTop: -5
     },
-    listItemCon: {
-        paddingTop: 40,
-        paddingHorizontal: 0,
-        backgroundColor: '#fff',
-        // iOS shadow properties
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 1,
-        // Android shadow (elevation)
-        elevation: 10,
-    },
+
     card: {
         marginTop: -5,
         position: 'static',

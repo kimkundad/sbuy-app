@@ -1,109 +1,143 @@
 import { Image, View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Alert } from 'react-native';
-import React, { useState, useEffect, useRef } from 'react';
-import { Stack, router, useRouter, useLocalSearchParams } from 'expo-router';
-import { Video, ResizeMode, VideoFullscreenUpdate } from 'expo-av';
+import React, { useState, useEffect, useRef, useCallback  } from 'react';
+import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as ScreenOrientation from 'expo-screen-orientation';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import * as ScreenCapture from 'expo-screen-capture';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useVideoPlayer, VideoView } from 'expo-video';
 
-export default function HomeScreen() {
+export default function VideoScreen() {
+    const router = useRouter();
     const navigation = useNavigation();
     const params = useLocalSearchParams();
     const { id = 52 } = params;
+    const scrollViewRef = useRef(null);
 
-    const video = useRef(null);
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [controlsVisible, setControlsVisible] = useState(true);
-    const scrollViewRef = useRef(null);  // ScrollView ref
     const [point, setPoint] = useState(0);
-    const [status, setStatus] = useState({});
-    const [isFullscreen, setIsFullscreen] = useState(false);
     const [data, setData] = useState(null);
     const [selectedVideo, setSelectedVideo] = useState(null);
-    const intervalRef = useRef(null); // To store the interval reference
+    const [videoUrl, setVideoUrl] = useState("");
+    const intervalRef = useRef(null);
+    const [status, setStatus] = useState({ isPlaying: false });
 
-    const togglePlayback = async () => {
-        if (video.current) {
-            const status = await video.current.getStatusAsync();
-            if (status.isPlaying) {
-                await video.current.pauseAsync();
-                setIsPlaying(false);
-            } else {
-                await video.current.playAsync();
-                setIsPlaying(true);
-            }
+    // 🎥 ใช้ `useVideoPlayer` จาก `expo-video`
+    const player = useVideoPlayer(videoUrl, (player) => {
+        if (videoUrl) {
+            player.loop = false;
+            player.play();
+            setStatus({ isPlaying: true });
         }
-    };
+    }, [videoUrl]);
 
-    const toggleControls = () => {
-        setControlsVisible(!controlsVisible); // สลับการแสดง/ซ่อนแถบควบคุม
-    };
+    // 🛑 หยุดวิดีโอเมื่อออกจากหน้า
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                if (player && typeof player.pause === 'function') {
+                    try {
+                        player.pause();
+                        console.log('🔴 Video Paused');
+                    } catch (error) {
+                        console.warn('⚠️ Error pausing video:', error.message);
+                    }
+                }
+            };
+        }, [player])
+    );
 
-    // Function to handle point deduction
+    useFocusEffect(
+        useCallback(() => {
+            const interval = setInterval(() => {
+                if (player) {
+                    setStatus({ isPlaying: player.playing });
+                    console.log("🎥 Video Playing Status:", player.playing);
+                }
+            }, 1000);
+    
+            return () => {
+                console.log("🧹 Cleaning up interval...");
+                clearInterval(interval);
+            };
+        }, [player])
+    );
+    
+    
+
+
+    // ฟังก์ชันตัดคะแนนทุก 5 วินาทีเมื่อเล่นวิดีโอ
     const startDeductingPoints = () => {
-        // Clear any existing intervals before starting a new one
         if (intervalRef.current) {
-            clearInterval(intervalRef.current);
+            console.log('⚠️ Interval already running, skipping...');
+            return;
         }
     
-        // Start interval to deduct points every 5 seconds
+        console.log('🔥 Starting point deduction every 5 seconds');
+    
         intervalRef.current = setInterval(async () => {
-            setPoint((prevPoint) => (prevPoint > 0 ? prevPoint - 5 : 0));
+            console.log('⏳ Deducting points...');
     
-            const token = await AsyncStorage.getItem('jwt_token');
-    
-            if (!token) {
-                console.error('Token is missing');
-                return;
-            }
+            // setPoint((prevPoint) => (prevPoint > 0 ? prevPoint - 5 : 0));
     
             try {
-                const { data } = await axios.post('https://www.learnsbuy.com/api/del_point_v4', {
-                    token
-                });
-                console.log('Points deducted successfully:', data?.data);
-                if(data?.data === 0){
+                const token = await AsyncStorage.getItem('jwt_token');
+                console.log('🔑 Token:', token);
+    
+                if (!token) {
+                    console.error('⚠️ Token is missing');
+                    return;
+                }
+    
+                const { data } = await axios.post('https://www.learnsbuy.com/api/del_point_v4', { token });
+                console.log('✅ Points deducted:', data?.data);
+                setPoint(data?.data)
+                if (data?.data === 0) {
+                    console.log('🚫 คะแนนหมด, กลับไปหน้าก่อนหน้า');
                     navigation.goBack();
                 }
             } catch (err) {
-                console.log('Error deducting points:', err);
+                console.log('❌ Error deducting points:', err);
             }
-            
-        }, 5000); // Deduct points every 5 seconds
+        }, 5000);
     };
+    
 
-    // Function to stop point deduction
+    // ฟังก์ชันหยุดตัดคะแนนเมื่อหยุดวิดีโอ
     const stopDeductingPoints = () => {
         if (intervalRef.current) {
-            clearInterval(intervalRef.current); // Stop the interval when video is paused or stopped
+            clearInterval(intervalRef.current);
             intervalRef.current = null;
+            console.log('🛑 Interval cleared, stopping point deduction');
         }
     };
 
-    // Effect to handle video playback status changes
+    // เรียกใช้งานเมื่อสถานะวิดีโอเปลี่ยนแปลง
     useEffect(() => {
-        if (status.isPlaying) {
-            startDeductingPoints(); // Start deducting points when video is playing
+        console.log("🎥 Player Status:", player?.status, "Playing:", player?.playing);
+    
+        if (player?.status === "readyToPlay" && player?.playing) {
+            console.log("✅ Video is playing, calling startDeductingPoints()");
+            startDeductingPoints();
         } else {
-            stopDeductingPoints(); // Stop deducting points when video is paused or stopped
-        }
-
-        // Clean up the interval when the component unmounts
-        return () => {
+            console.log("⏸ Video is not playing, stopping deduction");
             stopDeductingPoints();
-        };
-    }, [status.isPlaying]);
-
-    useEffect(() => {
-        ScreenCapture.preventScreenCaptureAsync(); // ป้องกันการจับภาพหน้าจอเมื่อเข้าหน้านี้
+        }
     
         return () => {
-            ScreenCapture.allowScreenCaptureAsync(); // อนุญาตการจับภาพหน้าจอเมื่อออกจากหน้าจอนี้
+            console.log("🧹 Cleaning up interval...");
+            stopDeductingPoints();
         };
+    }, [player?.status, player?.playing]);
+    
+    
+    
+
+    useEffect(() => {
+        ScreenCapture.preventScreenCaptureAsync();
+        return () => ScreenCapture.allowScreenCaptureAsync();
     }, []);
 
     useEffect(() => {
@@ -113,13 +147,18 @@ export default function HomeScreen() {
                 const token = await AsyncStorage.getItem('jwt_token');
                 if (token) {
                     const response = await axios.post(`https://www.learnsbuy.com/api/getCourseByID/${id}`, { token });
+    
+                 //   console.log('API Response:', response.data.courses);
                     setData(response.data.courses);
-
-                    // Set the first video as the default selected video
-                    setSelectedVideo({
-                        title: response?.data?.courses?.count_video[0]?.course_video_name,
-                        url: response?.data?.courses?.count_video[0]?.course_video_url,
-                    });
+    
+                    if (response?.data?.courses?.count_video?.length > 0) {
+                        const firstVideo = response.data.courses.count_video[0];
+                        setSelectedVideo({
+                            title: firstVideo.course_video_name,
+                            url: firstVideo.course_video_url,
+                        });
+                        setVideoUrl(firstVideo.course_video_url);
+                    }
                 } else {
                     navigation.navigate('(aLogin)');
                 }
@@ -158,136 +197,89 @@ export default function HomeScreen() {
                 console.error('Error fetching points:', error);
             }
         };
-        
-
-        fetchData();
         fetchPoint();
+        fetchData();
     }, [id]);
-
-    // Detect when selectedVideo changes and load the new video
-    useEffect(() => {
-        const loadVideo = async () => {
-            if (selectedVideo?.url && video.current) {
-                try {
-                    // ตรวจสอบสถานะการเล่นวิดีโอ
-                    const status = await video.current.getStatusAsync();
-    
-                    // Unload วิดีโอก่อนหน้า ถ้ายังมีวิดีโอที่เล่นอยู่
-                    if (status.isLoaded) {
-                        await video.current.unloadAsync();
-                    }
-    
-                    // Log the selected video URL for debugging
-                    console.log("Loading video URL:", selectedVideo?.url);
-    
-                    // Load วิดีโอใหม่และตั้งค่าให้เล่นอัตโนมัติ
-                    await video.current.loadAsync(
-                        { uri: selectedVideo.url },
-                        { shouldPlay: true }
-                    );
-    
-                } catch (error) {
-                    console.error('Error loading video:', error);
-                    Alert.alert('Error', `Failed to load video: ${error.message}`);
-                }
-            }
-        };
-    
-        loadVideo();
-    }, [selectedVideo?.url]);
     
 
     const handleVideoSelect = (video) => {
-        const videoUrl = video?.course_video_url;
-    
-        // ตรวจสอบว่าคลิปที่เลือกเป็นคนละคลิปกับที่กำลังเล่นอยู่
-        if (videoUrl !== selectedVideo?.url) {
-            console.log("Selected video URL:", videoUrl);
-    
-            // Set the selected video details when a video is pressed
+        if (video?.course_video_url && video.course_video_url !== videoUrl) {
+            setVideoUrl(video.course_video_url);
             setSelectedVideo({
                 title: video.course_video_name,
-                url: videoUrl,
+                url: video.course_video_url,
             });
     
-            // Scroll to the top of the ScrollView
-            if (scrollViewRef.current) {
-                scrollViewRef.current.scrollTo({ y: 0, animated: true });
-            }
+            scrollViewRef.current?.scrollTo({ y: 0, animated: true });
         }
     };
+    
     
 
     return (
         <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-            <Stack.Screen
-                options={{
-                    headerTransparent: true,
-                    headerTitle: 'Point '+ point,
-                    headerTitleAlign: 'center',
-                    headerTitleStyle: {
-                        color: 'black',
-                        fontFamily: 'Prompt_500Medium',
-                        fontSize: 18,
-                    },
-                    headerLeft: () => (
-                        <TouchableOpacity style={styles.backIcon} onPress={() => navigation.goBack()}>
-                        <View
-                            style={{
-                                backgroundColor: '#fff',
-                                padding: 6,
-                                borderRadius: 50
-                            }}
+
+            <LinearGradient
+                            colors={['#4EBD8C', '#4EBD8C', '#6AD1A4']}
+                            start={{ x: 0, y: 1 }}
+                            end={{ x: 0, y: 0 }}
+                            style={styles.headerGradient}
                         >
-                            <Ionicons name="chevron-back" size={20} color="black" />
-                        </View>
-                    </TouchableOpacity>
-                    ),
-                }}
-            />
-
-<ScrollView ref={scrollViewRef}>
-                <View style={styles.mainPage}>
-                    <View style={{ paddingHorizontal: 10 }}>
-                        <Text style={styles.courseTitle}>
-                            {selectedVideo ? selectedVideo?.title : 'Select a video to view details'}
-                        </Text>
-                    </View>
+                            <View style={styles.listItemCon}>
+                                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10 }}>
+                                    <TouchableOpacity style={styles.btnBack} onPress={() => router.push('(tabs)/mycourse')}>
+                                        <View
+                                            style={{
+                                                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                                padding: 5,
+                                                borderRadius: 25
+                                            }}
+                                        >
+                                            <Ionicons name="chevron-back" size={20} color="black" />
+                                        </View>
+                                    </TouchableOpacity>
+            
+                                    <View style={styles.textListHead}>
+                                        <Text style={{ fontSize: 18, fontFamily: 'Prompt_500Medium', color: '#fff', textAlign: 'center' }}>
+                                        Point {point}
+                                        </Text>
+                                    </View>
+            
+                                    {/* ใช้ View เปล่าทางขวาเพื่อให้ไอคอน Back และ Text อยู่ตรงกลาง */}
+                                    <View style={{ width: 32 }} />
+                                </View>
+            
+                            </View>
+                        </LinearGradient>
+                        <View style={styles.container}>
+                    {selectedVideo?.url ? (
+                        <VideoView
+                            player={player}
+                            style={styles.video}
+                            useNativeControls
+                            allowsFullscreen
+                            allowsPictureInPicture
+                        />
+                    ) : (
+                        <Text style={styles.errorText}>No Video Available</Text>
+                    )}
                 </View>
 
-                <View style={styles.container}>
-                <Video
-    ref={video}
-    style={isFullscreen ? styles.fullscreenVideo : styles.video}
-    source={{
-        uri: selectedVideo?.url || 'https://learnsbuy.com/assets/videos/1709478799.mp4', // Default video source (fallback)
-    }}
-    useNativeControls
-    resizeMode={ResizeMode.CONTAIN}
-    onPlaybackStatusUpdate={(status) => setStatus(() => status)}
-    onFullscreenUpdate={async ({ fullscreenUpdate }) => {
-        if (fullscreenUpdate === VideoFullscreenUpdate.PLAYER_WILL_PRESENT) {
-            setIsFullscreen(true);
-            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-        } else if (fullscreenUpdate === VideoFullscreenUpdate.PLAYER_WILL_DISMISS) {
-            setIsFullscreen(false);
-            // หน่วงเวลาเล็กน้อยก่อนที่จะเปลี่ยนการตั้งค่าหน้าจอกลับไปที่แนวตั้ง
-            setTimeout(async () => {
-                await ScreenOrientation.unlockAsync(); // ปลดล็อคการหมุนหน้าจอ
-                await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP); // กลับไปยังโหมดแนวตั้ง
-            }, 500); // หน่วงเวลา 500ms เพื่อให้การเปลี่ยนทิศทางหน้าจอมีเวลาทำงานบน iOS
-        }
-    }}
-/>
-                </View>
+            <ScrollView ref={scrollViewRef}>
+                
 
                 <View>
                     <View style={styles.lessonSection}>
                         <View style={styles.lessonHeader}>
-                            <Text style={styles.lessonTitle}>Lessons</Text>
-                        </View>
                         <View>
                             <Text style={styles.lessonMeta}>{data?.count_video?.length} Lessons</Text>
+                        </View>
+                        </View>
+                        <View>
+                        <Text style={styles.lessonMeta}>
+                       
+                        </Text>
+
                         </View>
 
                         <View style={{ marginTop: 10 }}>
@@ -299,12 +291,10 @@ export default function HomeScreen() {
                                             onPress={() => handleVideoSelect(video)}
                                         >
                                             <View style={styles.lessonItem}>
-                                                <View>
-                                                    <Image
-                                                        source={{ uri: 'https://learnsbuy.com/assets/uploads/' + video?.thumbnail_img }}
-                                                        style={styles.videoImg}
-                                                    />
-                                                </View>
+                                                <Image
+                                                    source={{ uri: 'https://learnsbuy.com/assets/uploads/' + video?.thumbnail_img }}
+                                                    style={styles.videoImg}
+                                                />
                                                 <View style={styles.lessonInfo}>
                                                     <Text style={styles.lessonName}>{video?.course_video_name}</Text>
                                                     <Text style={styles.lessonDuration}>
@@ -312,9 +302,7 @@ export default function HomeScreen() {
                                                     </Text>
                                                 </View>
                                                 <View style={styles.lessonActions}>
-                                                    <View style={styles.playIcon}>
-                                                        <Ionicons name="play-circle-outline" size={24} color="#dc3545" />
-                                                    </View>
+                                                    <Ionicons name="play-circle-outline" size={24} color="#dc3545" />
                                                 </View>
                                             </View>
                                         </TouchableOpacity>
@@ -330,90 +318,66 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-    buttons: {
-
+    headerGradient: {
+        height: Platform.select({
+            ios: 65,
+            android: 55,
+        }),
+        width: '100%',
     },
-    postContentContainer: {
-        flexDirection: 'column',
+    textListHead: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 10,
+        fontFamily: 'Prompt_400Regular',
     },
-    hrstyle: {
-        color: '#014b2d'
+    listItemCon: {
+        marginTop: Platform.select({
+            ios: 10,
+            android: 5,
+        }),
+        paddingHorizontal: 0,
+        // iOS shadow properties
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 1,
+        // Android shadow (elevation)
+        elevation: 10,
     },
-    videoImg: {
-        width: 80,
-        height: 60,
-        borderRadius: 10,
-        resizeMode: 'cover',
-    },
-    playIcon: {
-        backgroundColor: 'rgba(244, 67, 54, 0.2)',
-        borderRadius: 50,
-        padding: 0,
+    btnBack: {
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: 25,
+        padding: 4,
         alignItems: 'center',
     },
-    courseTitle: {
-        fontSize: 15,
-        fontFamily: 'Prompt_500Medium',
-        color: '#000',
-    },
-    backIcon: {
-        backgroundColor: 'rgba(50, 209, 145, 0.2)',
-        padding: 6,
-        borderRadius: 50,
-    },
     container: {
-    },
-    mainPage: {
         marginTop: Platform.select({
-            ios: 75,
-            android: 65,
+            ios: -10,
+            android: -15,
         }),
     },
     video: {
-        height: 250
-    },
-    fullscreenVideo: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        bottom: 0,
-        right: 0,
+        height: 250,
         width: '100%',
-        height: '100%',
-    },
-    titleContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    stepContainer: {
-        gap: 8,
-        marginBottom: 8,
-    },
-    reactLogo: {
-        height: 178,
-        width: 290,
-        bottom: 0,
-        left: 0,
-        position: 'absolute',
     },
     lessonSection: {
         paddingHorizontal: 15,
         marginBottom: 20,
-        paddingBottom: 20
+        paddingBottom: 20,
     },
     lessonHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginBottom: 10,
-
         borderLeftWidth: 5,
         borderColor: '#4ebd8c',
-        fontFamily: 'Prompt_500Medium',
-        // borderBottomWidth: 0.5,
-        // borderBottomColor: '#4ebd8c',
         paddingVertical: 5,
-        paddingLeft: 10
+        paddingLeft: 10,
     },
     lessonTitle: {
         fontSize: 20,
@@ -429,6 +393,9 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         marginBottom: 15,
+        borderBottomWidth: 0.5,
+        borderColor: '#4ebd8c',
+        paddingVertical: 5
     },
     lessonInfo: {
         flex: 1,

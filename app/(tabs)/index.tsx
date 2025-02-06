@@ -135,15 +135,23 @@ export default function HomeScreen({ navigation }) {
   }, [sortData]);  // Re-run effect when sortData changes
 
   useEffect(() => {
-    console.log('userProfile', userProfile)
+    //console.log('userProfile', userProfile)
   }, [userProfile]);
 
   const padding = 20;
   const carouselWidth = screenWidth - padding * 2;
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
-      <StatusBar style="dark" />
+    <View style={styles.container}>
+      <StatusBar 
+          style={Platform.OS === 'ios' ? 'dark' : 'light'} 
+          backgroundColor="#4ebd8c" 
+          translucent={false} 
+        />
+        <LinearGradient
+        colors={['#4EBD8C', '#fff', '#fff', '#fff']}
+        style={{flex: 1}}
+      >
       <View style={styles.container1}>
         <FlatList
           data={getCourse} // Assuming `getCourse` is the main data
@@ -182,14 +190,34 @@ export default function HomeScreen({ navigation }) {
                   )}
                 </View>
 
+                {userProfile ? (
                 <TouchableOpacity
                   onPress={() => {
                     // handle onPress
+                    if (userProfile.id === 1) {
+                      // ✅ ถ้าเป็นครู (teacher_id = 1) ให้ไปที่ chatList
+                      router.push("(course)/chatList");
+                    } else {
+                      // ✅ ถ้าเป็นนักเรียน ให้ไปที่ chat และส่งค่า student_id, teacher_id, student_name
+                      router.push({
+                        pathname: "(course)/chat",
+                        params: { student_id: userProfile.id, teacher_id: 1, student_name: userProfile.name, avatar: userProfile.avatar, current_user_id: userProfile.id },
+                      });
+                    }
                   }}>
                   <View>
-                    <Ionicons name="notifications-outline" size={27} color="white" />
+                    <Ionicons name="chatbox-ellipses-outline" size={24} color="white" />
                   </View>
                 </TouchableOpacity>
+                 ) : (
+                  <TouchableOpacity
+                  onPress={() => {
+                  }}>
+                  <View>
+                    <Ionicons name="chatbox-ellipses-outline" size={24} color="white" />
+                  </View>
+                </TouchableOpacity>
+                )}
 
               </View>
             
@@ -257,39 +285,43 @@ export default function HomeScreen({ navigation }) {
               </View>
 
               <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={styles.scrollContainer}
-    >
-      {getPacKage && (
-        <>
-      {getPacKage.map((pack, index) => (
-        <View key={index} style={styles.card}>
-          <Image source={{ uri: 'https://learnsbuy.com/assets/uploads/' + pack.c_pack_image }} style={styles.image} />
-          <Text style={styles.price} >{pack.c_pack_price?.toLocaleString()}</Text>
-          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">{pack.c_pack_name}</Text>
-          <View style={{ paddingHorizontal: 5 }}>
-          <View style={styles.courseInfo}>
-          
-          </View>
-          </View>
-        </View>
-      ))}
-      </>
-    )}
-    </ScrollView>
-
-              {/* Categories Section */}
-              <View style={styles.menuHeader}>
-                <Text style={styles.menuHeader1}>คอร์สเรียนทั้งหมด</Text>
-              </View>
-              <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 style={styles.scrollContainer}
               >
-                {/* Category Items here */}
+                {getPacKage && (
+                  <>
+                  {getPacKage.map((pack, index) => (
+                    <TouchableOpacity 
+                    key={index}
+                    onPress={() => {
+                      router.push({
+                        pathname: '(course)/packDetail',
+                        params: { id: pack.id },
+                      });
+                    }}
+                  >
+                    <View  style={styles.card}>
+                      <Image source={{ uri: 'https://learnsbuy.com/assets/uploads/' + pack.c_pack_image }} style={styles.image} />
+                      <Text style={styles.price} >{pack.c_pack_price?.toLocaleString()}</Text>
+                      <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">{pack.c_pack_name}</Text>
+                      <View style={{ paddingHorizontal: 5 }}>
+                      <View style={styles.courseInfo}>
+                      
+                      </View>
+                      </View>
+                    </View>
+                    </TouchableOpacity>
+                  ))}
+                  </>
+                )}
               </ScrollView>
+
+              {/* Categories Section */}
+            <View style={styles.menuHeader}>
+                <Text style={styles.menuHeader1}>คอร์สเรียนทั้งหมด</Text>
+            </View>
+              
             </View>
           )}
 
@@ -330,7 +362,8 @@ export default function HomeScreen({ navigation }) {
           )}
         />
       </View>
-    </SafeAreaView >
+      </LinearGradient>
+    </View >
   );
 
 
@@ -340,6 +373,14 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingVertical: 10,
     marginTop: 0
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#4ebd8c',
+    paddingTop: Platform.select({
+      ios: 35,
+      android: 0,
+  }),
   },
   imagePro1: {
     width: '100%',
@@ -531,10 +572,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'gray',  // Color for the inactive dots
   },
   container1: {
-    padding: 20,
-    marginTop: Platform.select({
- 
-    }),
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    
   },
   profileMain: {
     display: 'flex',

@@ -9,28 +9,18 @@
       "distribution": "internal"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "channel": "preview"
     },
     "production": {
       "autoIncrement": true,
+      "distribution": "store",
       "android": {
-        "buildType": "app-bundle"
+        "buildType": "apk"
       }
     }
   },
   "submit": {
-    "production": {
-      "android": {
-        "serviceAccountKeyPath": "$GOOGLE_SERVICE_ACCOUNT_KEY_PATH",
-        "track": "production"
-      }
-    }
+    "production": {}
   }
 }
-
-
-
-
-
-
-

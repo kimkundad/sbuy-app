@@ -5,12 +5,7 @@ import { useEffect } from 'react';
 import { Colors } from 'react-native/Libraries/NewAppScreen';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { StatusBar } from 'expo-status-bar';
-import { FontAwesome5 } from '@expo/vector-icons';
-import { AntDesign } from '@expo/vector-icons';
-import { Feather } from '@expo/vector-icons';
-import { Entypo } from '@expo/vector-icons';
-import { FontAwesome } from '@expo/vector-icons';
-
+import { LinearGradient } from 'expo-linear-gradient';
 
 const { width } = Dimensions.get('window');
 
@@ -20,35 +15,45 @@ const Policy = () => {
 
     return (
         <SafeAreaProvider style={{ flex: 1, backgroundColor: '#fff' }} >
-            <StatusBar style="dark" />
+            <StatusBar
+        style={Platform.OS === 'ios' ? 'dark' : 'light'}
+        backgroundColor="#4ebd8c"
+        translucent={false}
+      />
+      <LinearGradient
+        colors={['#4EBD8C', '#4EBD8C', '#6AD1A4']}
+        start={{ x: 0, y: 1 }}
+        end={{ x: 0, y: 0 }}
+        style={styles.headerGradient}
+      >
+        <View style={styles.listItemCon}>
+          <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10 }}>
+            <TouchableOpacity style={styles.btnBack} onPress={() => router.push('(tabs)/setting')}>
+              <View
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                  padding: 5,
+                  borderRadius: 25
+                }}
+              >
+                <Ionicons name="chevron-back" size={20} color="black" />
+              </View>
+            </TouchableOpacity>
+
+            <View style={styles.textListHead}>
+              <Text style={{ fontSize: 18, fontFamily: 'Prompt_500Medium', color: '#fff', textAlign: 'center' }}>
+              นโยบายความเป็นส่วนตัว
+              </Text>
+            </View>
+
+            {/* ใช้ View เปล่าทางขวาเพื่อให้ไอคอน Back และ Text อยู่ตรงกลาง */}
+            <View style={{ width: 32 }} />
+          </View>
+
+        </View>
+      </LinearGradient>
             <ScrollView>
-            <Stack.Screen options={{
-                    headerTransparent: true,
-                    headerTitle: 'นโยบายความเป็นส่วนตัว',
-                    headerTitleAlign: 'center', // Center the header title
-                    headerTitleStyle: {
-                        color: 'black', // กำหนดสีของ headerTitle
-                        fontFamily: 'Prompt_500Medium', // กำหนดฟอนต์
-                        fontSize: 16
-                    },
-                    contentStyle: {
-                      backgroundColor: 'white', // เพิ่มพื้นหลังสีขาวให้กับหน้าจอ
-                    },
-                    headerLeft: () => (
-                        <TouchableOpacity style={styles.backIcon} onPress={() => navigation.goBack()}>
-                        <View
-                            style={{
-                                backgroundColor: '#fff',
-                                padding: 6,
-                                borderRadius: 50
-                            }}
-                        >
-                            <Ionicons name="chevron-back" size={20} color="black" />
-                        </View>
-                    </TouchableOpacity>
-                    ),
-                    
-                }} />
+           
                 <View>
                     <View style={{ marginTop: 0, }}>
 
@@ -118,13 +123,48 @@ const Policy = () => {
 export default Policy
 
 const styles = StyleSheet.create({
-
+    headerGradient: {
+        height: Platform.select({
+            ios: 85,
+            android: 55,
+        }),
+        width: '100%',
+      },
+    listItemCon: {
+        marginTop: Platform.select({
+          ios: 35,
+          android: 10,
+        }),
+        paddingHorizontal: 0,
+        // iOS shadow properties
+        shadowColor: '#000',
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 1,
+        // Android shadow (elevation)
+        elevation: 10,
+      },
+      btnBack: {
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: 25,
+        padding: 4,
+        alignItems: 'center',
+      },
+      textListHead: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 10,
+        fontFamily: 'Prompt_400Regular',
+      },
     container: {
         padding: 10,
         paddingHorizontal: 12,
         marginTop: Platform.select({
-          ios: 70,
-          android: 75,
+   
         }),
       },
       backIcon: {
@@ -177,13 +217,7 @@ const styles = StyleSheet.create({
         borderRadius: 99,
         width: 200,
     },
-    textListHead: {
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        padding: 10,
-        fontFamily: 'Prompt_400Regular',
-    },
+   
     iconAdd: {
         color: '#f47524',
     },
@@ -201,21 +235,7 @@ const styles = StyleSheet.create({
         fontSize: 18,
         marginTop: -5
     },
-    listItemCon: {
-        paddingTop: 40,
-        paddingHorizontal: 0,
-        backgroundColor: '#fff',
-        // iOS shadow properties
-        shadowColor: '#000',
-        shadowOffset: {
-            width: 0,
-            height: 2,
-        },
-        shadowOpacity: 0.25,
-        shadowRadius: 1,
-        // Android shadow (elevation)
-        elevation: 10,
-    },
+   
     card: {
         marginTop: -5,
         position: 'static',

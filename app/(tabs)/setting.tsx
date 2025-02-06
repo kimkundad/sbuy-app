@@ -178,7 +178,11 @@ export default function Setting() {
 
     return (
         <SafeAreaProvider style={{ flex: 1, backgroundColor: '#fff' }} >
-            <StatusBar style="dark" />
+            <StatusBar 
+                      style={Platform.OS === 'ios' ? 'dark' : 'light'} 
+                      backgroundColor="#4ebd8c" 
+                      translucent={false} 
+                    />
             <ScrollView>
                 <View >
 

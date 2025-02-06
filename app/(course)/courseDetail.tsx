@@ -8,6 +8,8 @@ import { Stack, router, useRouter, useLocalSearchParams } from 'expo-router';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { WebView } from 'react-native-webview';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
 
 const { width } = Dimensions.get('window');
 
@@ -54,33 +56,42 @@ const CourseDetail = () => {
 
     return (
         <View style={{ flex: 1, backgroundColor: '#fff' }}>
-            <Stack.Screen options={{
-                headerTransparent: true,
-                headerTitle: ' Course Details',
-                headerTitleAlign: 'center', // Center the header title
-                headerTitleStyle: {
-                    color: 'black', // กำหนดสีของ headerTitle
-                    fontFamily: 'Prompt_500Medium', // กำหนดฟอนต์
-                    fontSize: 18,
-                },
-                headerLeft: () => (
-                    <TouchableOpacity style={styles.backIcon} onPress={() => navigation.goBack()}>
-                        <View
-                            style={{
-                                backgroundColor: Colors.white,
-                                padding: 6,
-                                borderRadius: 50
-                            }}
-                        >
-                            <Ionicons name="chevron-back" size={20} color="black" />
-                        </View>
-                    </TouchableOpacity>
-                ),
-            }} />
 
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 {/* Course Image and Details */}
+                <StatusBar style="dark" />
+                <LinearGradient
+                    colors={['#4EBD8C', '#4EBD8C', '#6AD1A4']}
+                    start={{ x: 0, y: 1 }}
+                    end={{ x: 0, y: 0 }}
+                    style={styles.headerGradient}
+                >
+                    <View style={styles.listItemCon}>
+                        <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10 }}>
+                            <TouchableOpacity style={styles.btnBack} onPress={() => router.push('(tabs)/')}>
+                                <View
+                                    style={{
+                                        backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                                        padding: 5,
+                                        borderRadius: 25
+                                    }}
+                                >
+                                    <Ionicons name="chevron-back" size={20} color="black" />
+                                </View>
+                            </TouchableOpacity>
 
+                            <View style={styles.textListHead}>
+                                <Text style={{ fontSize: 18, fontFamily: 'Prompt_500Medium', color: '#fff', textAlign: 'center' }}>
+                                    รายละเอียดคอร์ส
+                                </Text>
+                            </View>
+
+                            {/* ใช้ View เปล่าทางขวาเพื่อให้ไอคอน Back และ Text อยู่ตรงกลาง */}
+                            <View style={{ width: 32 }} />
+                        </View>
+
+                    </View>
+                </LinearGradient>
 
                 <View style={styles.detailsContainer}>
                     {data?.courses?.url_youtube ? (
@@ -190,12 +201,18 @@ const CourseDetail = () => {
                             )}
                         </View>
 
-
                     </View>
                 </View>
             </ScrollView>
 
-
+            <View style={styles.fixedButtonContainer}>
+                <TouchableOpacity style={styles.enrollButton} onPress={() => router.push({
+                        pathname: '(payment)/',
+                        params: { data: JSON.stringify(data) }
+                      })}>
+                    <Text style={styles.enrollButtonText}>จองคอร์สเรียน</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     )
 
@@ -204,12 +221,62 @@ const CourseDetail = () => {
 export default CourseDetail
 
 const styles = StyleSheet.create({
+    fixedButtonContainer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: '#ffffff00',
+        padding: 10,
+    },
+    enrollButton: {
+        backgroundColor: '#44a77b',
+        padding: 15,
+        borderRadius: 15,
+        alignItems: 'center',
+    },
+    enrollButtonText: {
+        color: '#fff',
+        fontSize: 18,
+        fontFamily: 'Prompt_500Medium',
+    },
+    headerGradient: {
+        height: 85,
+        width: '100%',
+    },
     scrollContainer: {
         paddingBottom: 30,
+     
+    },
+    listItemCon: {
         marginTop: Platform.select({
-            ios: 80,
-            android: 70,
+            ios: 35,
+            android: 35,
         }),
+        paddingHorizontal: 0,
+        // iOS shadow properties
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 1,
+        // Android shadow (elevation)
+        elevation: 10,
+    },
+    btnBack: {
+        backgroundColor: 'rgba(255, 255, 255, 0.2)',
+        borderRadius: 25,
+        padding: 4,
+        alignItems: 'center',
+    },
+    textListHead: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 10,
+        fontFamily: 'Prompt_400Regular',
     },
     postDescription: {
         paddingTop: 0,
