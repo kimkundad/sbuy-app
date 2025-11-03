@@ -25,13 +25,31 @@ export default function VideoScreen() {
     const [status, setStatus] = useState({ isPlaying: false });
 
     // 🎥 ใช้ `useVideoPlayer` จาก `expo-video`
-    const player = useVideoPlayer(videoUrl, (player) => {
-        if (videoUrl) {
-            player.loop = false;
+    // const player = useVideoPlayer(videoUrl, (player) => {
+    //     if (videoUrl) {
+    //         player.loop = false;
+    //         player.play();
+    //         setStatus({ isPlaying: true });
+    //     }
+    // }, [videoUrl]);
+
+
+    const player = useVideoPlayer(
+        videoUrl || null,
+        (p) => {
+            if (videoUrl) {
+            p.play();
+            }
+        },
+        [] // ❗️อย่าใส่ [videoUrl] เพราะจะสร้างใหม่ทุกครั้ง
+        );
+
+        useEffect(() => {
+        if (player && videoUrl) {
+            player.replace(videoUrl);
             player.play();
-            setStatus({ isPlaying: true });
         }
-    }, [videoUrl]);
+        }, [videoUrl]);
 
     // 🛑 หยุดวิดีโอเมื่อออกจากหน้า
     useFocusEffect(
@@ -254,11 +272,12 @@ export default function VideoScreen() {
                         <View style={styles.container}>
                     {selectedVideo?.url ? (
                         <VideoView
-                            player={player}
-                            style={styles.video}
-                            useNativeControls
-                            allowsFullscreen
-                            allowsPictureInPicture
+                        key={videoUrl} // บังคับให้ React remount component
+                        player={player}
+                        style={styles.video}
+                        useNativeControls
+                        allowsFullscreen
+                        allowsPictureInPicture
                         />
                     ) : (
                         <Text style={styles.errorText}>No Video Available</Text>
@@ -364,6 +383,7 @@ const styles = StyleSheet.create({
     video: {
         height: 250,
         width: '100%',
+        backgroundColor: 'black', // เพิ่มบรรทัดนี้
     },
     lessonSection: {
         paddingHorizontal: 15,
