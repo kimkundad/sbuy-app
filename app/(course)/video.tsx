@@ -295,7 +295,7 @@ export default function VideoScreen() {
                                 <Text style={styles.errorText}>No Video Available</Text>
                             )}
                 </View>
-                
+
 
             <ScrollView ref={scrollViewRef}>
                 
@@ -388,7 +388,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     container: {
-        flex: 1,
         marginTop: Platform.select({
             ios: -10,
             android: -15,
