@@ -295,6 +295,7 @@ export default function VideoScreen() {
                                 <Text style={styles.errorText}>No Video Available</Text>
                             )}
                 </View>
+                
 
             <ScrollView ref={scrollViewRef}>
                 
