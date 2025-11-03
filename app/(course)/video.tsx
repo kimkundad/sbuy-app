@@ -1,4 +1,4 @@
-import { Image, View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Alert } from 'react-native';
+import { Image, View, Text, StyleSheet, ScrollView, TouchableOpacity, Platform, Alert, useWindowDimensions } from 'react-native';
 import React, { useState, useEffect, useRef, useCallback  } from 'react';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
@@ -11,6 +11,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useVideoPlayer, VideoView } from 'expo-video';
 
 export default function VideoScreen() {
+
+    const { width, height } = useWindowDimensions();
+
+    const isLandscape = width > height;
+    const videoHeight = isLandscape ? height * 0.9 : width * 0.56; // 16:9
+
+
     const router = useRouter();
     const navigation = useNavigation();
     const params = useLocalSearchParams();
@@ -270,18 +277,23 @@ export default function VideoScreen() {
                             </View>
                         </LinearGradient>
                         <View style={styles.container}>
-                    {selectedVideo?.url ? (
-                        <VideoView
-                        key={videoUrl} // บังคับให้ React remount component
-                        player={player}
-                        style={styles.video}
-                        useNativeControls
-                        allowsFullscreen
-                        allowsPictureInPicture
-                        />
-                    ) : (
-                        <Text style={styles.errorText}>No Video Available</Text>
-                    )}
+                            {selectedVideo?.url ? (
+                                <VideoView
+                                key={videoUrl} // บังคับให้ React remount component
+                                player={player}
+                                // style={styles.video}
+                                style={{
+                                width: width,
+                                height: videoHeight,
+                                backgroundColor: 'black',
+                                }}
+                                useNativeControls
+                                allowsFullscreen
+                                allowsPictureInPicture
+                                />
+                            ) : (
+                                <Text style={styles.errorText}>No Video Available</Text>
+                            )}
                 </View>
 
             <ScrollView ref={scrollViewRef}>
@@ -375,6 +387,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     container: {
+        flex: 1,
         marginTop: Platform.select({
             ios: -10,
             android: -15,
