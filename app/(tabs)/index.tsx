@@ -232,7 +232,7 @@ export default function HomeScreen({ navigation }) {
                         <Carousel
                           loop
                           width={carouselWidth}
-                          height={150}
+                          height={screenWidth * 0.5}
                           autoPlay={true}
                           autoPlayInterval={4000}
                           data={getSlide}
@@ -245,8 +245,7 @@ export default function HomeScreen({ navigation }) {
                                 source={{ uri: getSlide[index] }}  // นำ URL มาแสดงเป็นภาพ
                                 style={{
                                   width: '100%',
-                                  height: '100%',
-                                  resizeMode: 'cover',
+                                  aspectRatio: 16 / 9,  // ✅ ให้คงสัดส่วนเหมือนมือถือ
                                   borderRadius: 5,
                                 }}
                               />
@@ -383,11 +382,11 @@ const styles = StyleSheet.create({
   }),
   },
   imagePro1: {
-    width: '100%',
-    height: 100,
-    borderRadius: 10,
-    marginBottom: 10,
-  },
+  width: '100%',
+  aspectRatio: 16 / 9, // ✅ หรือ 3/2
+  borderRadius: 10,
+  marginBottom: 10,
+},
   row: {
     justifyContent: 'space-between',
 
@@ -460,7 +459,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: 160,
+    aspectRatio: 3 / 2,
     borderRadius: 10,
   },
   badge: {

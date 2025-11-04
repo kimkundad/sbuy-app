@@ -242,111 +242,170 @@ export default function VideoScreen() {
     
 
     return (
-        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+  <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+    {isLandscape ? (
+      // 🟩 แสดงเฉพาะ Video เต็มจอในแนวนอน
+      <ScrollView>
 
-            <LinearGradient
-                            colors={['#4EBD8C', '#4EBD8C', '#6AD1A4']}
-                            start={{ x: 0, y: 1 }}
-                            end={{ x: 0, y: 0 }}
-                            style={styles.headerGradient}
-                        >
-                            <View style={styles.listItemCon}>
-                                <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10 }}>
-                                    <TouchableOpacity style={styles.btnBack} onPress={() => router.push('(tabs)/mycourse')}>
-                                        <View
-                                            style={{
-                                                backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                                                padding: 5,
-                                                borderRadius: 25
-                                            }}
-                                        >
-                                            <Ionicons name="chevron-back" size={20} color="black" />
-                                        </View>
-                                    </TouchableOpacity>
-            
-                                    <View style={styles.textListHead}>
-                                        <Text style={{ fontSize: 18, fontFamily: 'Prompt_500Medium', color: '#fff', textAlign: 'center' }}>
-                                        Point {point}
-                                        </Text>
-                                    </View>
-            
-                                    {/* ใช้ View เปล่าทางขวาเพื่อให้ไอคอน Back และ Text อยู่ตรงกลาง */}
-                                    <View style={{ width: 32 }} />
-                                </View>
-            
-                            </View>
-                        </LinearGradient>
-                        <View style={styles.container}>
-                            {selectedVideo?.url ? (
-                                <VideoView
-                                key={videoUrl} // บังคับให้ React remount component
-                                player={player}
-                                // style={styles.video}
-                                style={{
-                                width: width,
-                                height: videoHeight,
-                                backgroundColor: 'black',
-                                }}
-                                useNativeControls
-                                allowsFullscreen
-                                allowsPictureInPicture
-                                />
-                            ) : (
-                                <Text style={styles.errorText}>No Video Available</Text>
-                            )}
+      <LinearGradient
+          colors={['#4EBD8C', '#4EBD8C', '#6AD1A4']}
+          start={{ x: 0, y: 1 }}
+          end={{ x: 0, y: 0 }}
+          style={styles.headerGradient}
+        >
+          <View style={styles.listItemCon}>
+            <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10 }}>
+              <TouchableOpacity style={styles.btnBack} onPress={() => router.push('(tabs)/mycourse')}>
+                <View
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    padding: 5,
+                    borderRadius: 25,
+                  }}
+                >
+                  <Ionicons name="chevron-back" size={20} color="black" />
                 </View>
+              </TouchableOpacity>
 
+              <View style={styles.textListHead}>
+                <Text style={{ fontSize: 18, fontFamily: 'Prompt_500Medium', color: '#fff', textAlign: 'center' }}>
+                  Point {point}
+                </Text>
+              </View>
 
-            <ScrollView ref={scrollViewRef}>
-                
+              <View style={{ width: 32 }} />
+            </View>
+          </View>
+        </LinearGradient>
 
-                <View>
-                    <View style={styles.lessonSection}>
-                        <View style={styles.lessonHeader}>
-                        <View>
-                            <Text style={styles.lessonMeta}>{data?.count_video?.length} Lessons</Text>
-                        </View>
-                        </View>
-                        <View>
-                        <Text style={styles.lessonMeta}>
-                       
-                        </Text>
+    <VideoView
+      key={videoUrl}
+      player={player}
+      style={{
+        width: width,
+        height: height * 0.6, // ครอบแค่ 60% ของหน้าจอ
+        backgroundColor: 'black',
+      }}
+      useNativeControls
+    />
+    {/* ส่วนเนื้อหาอื่น */}
+    <View style={{ padding: 20 }}>
+      <ScrollView ref={scrollViewRef}>
+          <View style={styles.lessonSection}>
+            <View style={styles.lessonHeader}>
+              <Text style={styles.lessonMeta}>{data?.count_video?.length} Lessons</Text>
+            </View>
 
-                        </View>
-
-                        <View style={{ marginTop: 10 }}>
-                            {data?.count_video && (
-                                <View>
-                                    {data?.count_video.map((video) => (
-                                        <TouchableOpacity
-                                            key={video.id}
-                                            onPress={() => handleVideoSelect(video)}
-                                        >
-                                            <View style={styles.lessonItem}>
-                                                <Image
-                                                    source={{ uri: 'https://learnsbuy.com/assets/uploads/' + video?.thumbnail_img }}
-                                                    style={styles.videoImg}
-                                                />
-                                                <View style={styles.lessonInfo}>
-                                                    <Text style={styles.lessonName}>{video?.course_video_name}</Text>
-                                                    <Text style={styles.lessonDuration}>
-                                                        {video?.time_video ? video?.time_video : '20'} min
-                                                    </Text>
-                                                </View>
-                                                <View style={styles.lessonActions}>
-                                                    <Ionicons name="play-circle-outline" size={24} color="#dc3545" />
-                                                </View>
-                                            </View>
-                                        </TouchableOpacity>
-                                    ))}
-                                </View>
-                            )}
-                        </View>
+            <View style={{ marginTop: 10 }}>
+              {data?.count_video &&
+                data.count_video.map((video) => (
+                  <TouchableOpacity key={video.id} onPress={() => handleVideoSelect(video)}>
+                    <View style={styles.lessonItem}>
+                      <Image
+                        source={{ uri: 'https://learnsbuy.com/assets/uploads/' + video?.thumbnail_img }}
+                        style={styles.videoImg}
+                      />
+                      <View style={styles.lessonInfo}>
+                        <Text style={styles.lessonName}>{video?.course_video_name}</Text>
+                        <Text style={styles.lessonDuration}>{video?.time_video || '20'} min</Text>
+                      </View>
+                      <View style={styles.lessonActions}>
+                        <Ionicons name="play-circle-outline" size={24} color="#dc3545" />
+                      </View>
                     </View>
+                  </TouchableOpacity>
+                ))}
+            </View>
+          </View>
+        </ScrollView>
+    </View>
+  </ScrollView>
+    ) : (
+      // 🟦 Layout ปกติแนวตั้ง
+      <>
+        <LinearGradient
+          colors={['#4EBD8C', '#4EBD8C', '#6AD1A4']}
+          start={{ x: 0, y: 1 }}
+          end={{ x: 0, y: 0 }}
+          style={styles.headerGradient}
+        >
+          <View style={styles.listItemCon}>
+            <View style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10 }}>
+              <TouchableOpacity style={styles.btnBack} onPress={() => router.push('(tabs)/mycourse')}>
+                <View
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                    padding: 5,
+                    borderRadius: 25,
+                  }}
+                >
+                  <Ionicons name="chevron-back" size={20} color="black" />
                 </View>
-            </ScrollView>
-        </SafeAreaView>
-    );
+              </TouchableOpacity>
+
+              <View style={styles.textListHead}>
+                <Text style={{ fontSize: 18, fontFamily: 'Prompt_500Medium', color: '#fff', textAlign: 'center' }}>
+                  Point {point}
+                </Text>
+              </View>
+
+              <View style={{ width: 32 }} />
+            </View>
+          </View>
+        </LinearGradient>
+
+        <View style={styles.container}>
+          {selectedVideo?.url ? (
+            <VideoView
+              key={videoUrl}
+              player={player}
+              style={{
+                width: width,
+                height: videoHeight,
+                backgroundColor: 'black',
+              }}
+              useNativeControls
+              allowsFullscreen
+              allowsPictureInPicture
+            />
+          ) : (
+            <Text style={styles.errorText}>No Video Available</Text>
+          )}
+        </View>
+
+        <ScrollView ref={scrollViewRef}>
+          <View style={styles.lessonSection}>
+            <View style={styles.lessonHeader}>
+              <Text style={styles.lessonMeta}>{data?.count_video?.length} Lessons</Text>
+            </View>
+
+            <View style={{ marginTop: 10 }}>
+              {data?.count_video &&
+                data.count_video.map((video) => (
+                  <TouchableOpacity key={video.id} onPress={() => handleVideoSelect(video)}>
+                    <View style={styles.lessonItem}>
+                      <Image
+                        source={{ uri: 'https://learnsbuy.com/assets/uploads/' + video?.thumbnail_img }}
+                        style={styles.videoImg}
+                      />
+                      <View style={styles.lessonInfo}>
+                        <Text style={styles.lessonName}>{video?.course_video_name}</Text>
+                        <Text style={styles.lessonDuration}>{video?.time_video || '20'} min</Text>
+                      </View>
+                      <View style={styles.lessonActions}>
+                        <Ionicons name="play-circle-outline" size={24} color="#dc3545" />
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+            </View>
+          </View>
+        </ScrollView>
+      </>
+    )}
+  </SafeAreaView>
+);
+
 }
 
 const styles = StyleSheet.create({

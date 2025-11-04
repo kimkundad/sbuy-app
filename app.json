@@ -14,7 +14,8 @@
       "backgroundColor": "#4ebd8c"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.app1.learnsbuy"
     },
     "android": {
       "adaptiveIcon": {
